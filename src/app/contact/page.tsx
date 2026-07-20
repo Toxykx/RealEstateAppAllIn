@@ -11,9 +11,9 @@ export default function ContactPage() {
         <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">צור קשר עם אופק נכסים</CardTitle>
+              <CardTitle className="text-2xl">יצירת קשר עם אופק נכסים</CardTitle>
               <CardDescription>
-                ספרו לנו מה אתם מחפשים וסוכן שלנו יחזור אליכם.
+                ספרו לנו מה אתם מחפשים ומתווך שלנו יחזור אליכם.
               </CardDescription>
             </CardHeader>
             <CardContent>

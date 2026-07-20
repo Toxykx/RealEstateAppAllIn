@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
+import type { ActionResult } from "@/components/action-form";
 
 const createClientSchema = z.object({
   name: z.string().min(1, "יש להזין שם"),
@@ -45,7 +46,7 @@ export async function createClient(_prevState: { error?: string } | undefined, f
   });
 
   revalidatePath("/agent/clients");
-  redirect(`/agent/clients/${client.id}`);
+  redirect(`/agent/clients/${client.id}?created=1`);
 }
 
 const updateClientSchema = z.object({
@@ -54,7 +55,7 @@ const updateClientSchema = z.object({
   isActive: z.boolean(),
 });
 
-export async function updateClient(clientId: string, formData: FormData) {
+export async function updateClient(clientId: string, formData: FormData): Promise<ActionResult> {
   await requireUser(["AGENT", "MANAGER"]);
 
   const parsed = updateClientSchema.safeParse({
@@ -62,7 +63,9 @@ export async function updateClient(clientId: string, formData: FormData) {
     phone: formData.get("phone") || undefined,
     isActive: formData.get("isActive") === "on",
   });
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    return { success: false, message: parsed.error.issues[0]?.message ?? "אירעה שגיאה" };
+  }
 
   await prisma.user.update({
     where: { id: clientId },
@@ -71,4 +74,5 @@ export async function updateClient(clientId: string, formData: FormData) {
 
   revalidatePath(`/agent/clients/${clientId}`);
   revalidatePath("/agent/clients");
+  return { success: true, message: "פרטי הלקוח נשמרו בהצלחה" };
 }

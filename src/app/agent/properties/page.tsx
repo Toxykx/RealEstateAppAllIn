@@ -29,7 +29,7 @@ export default async function AgentPropertiesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">נכסים</h1>
         <Link href="/agent/properties/new" className={buttonVariants()}>
-          <Plus className="h-4 w-4" /> נכס חדש
+          <Plus className="h-4 w-4" /> הוספת נכס
         </Link>
       </div>
 
@@ -43,7 +43,7 @@ export default async function AgentPropertiesPage() {
                 <TableHead>סוג</TableHead>
                 <TableHead>מחיר</TableHead>
                 <TableHead>בעלים</TableHead>
-                {user.role === "MANAGER" && <TableHead>סוכן</TableHead>}
+                {user.role === "MANAGER" && <TableHead>מתווך</TableHead>}
                 <TableHead>סטטוס</TableHead>
               </TableRow>
             </TableHeader>

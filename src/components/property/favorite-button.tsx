@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { Heart } from "lucide-react";
+import { toast } from "sonner";
 import { toggleFavorite } from "@/lib/actions/favorites";
 import { cn } from "@/lib/utils";
 
@@ -22,8 +23,9 @@ export function FavoriteButton({
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        startTransition(() => {
-          toggleFavorite(propertyId);
+        startTransition(async () => {
+          const result = await toggleFavorite(propertyId);
+          toast.success(result.added ? "הנכס נוסף למועדפים" : "הנכס הוסר מהמועדפים");
         });
       }}
       className="absolute end-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/90 shadow-sm transition-transform hover:scale-105 disabled:opacity-60"

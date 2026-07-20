@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
 import { getSignedDocumentUrl } from "@/lib/storage";
+import { WhatsAppButton } from "@/components/property/whatsapp-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -104,12 +105,18 @@ export default async function ClientPropertyDetailPage({
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">הסוכן שלך</CardTitle>
+            <CardTitle className="text-lg">המתווך שלך</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-1 text-sm">
+          <CardContent className="space-y-3 text-sm">
             <p className="font-medium">{property.agent.name}</p>
             {property.agent.phone && <p className="text-muted-foreground">{property.agent.phone}</p>}
             <p className="text-muted-foreground">{property.agent.email}</p>
+            {property.agent.phone && (
+              <WhatsAppButton
+                phone={property.agent.phone}
+                propertyReference={`${property.title}, ${property.city}`}
+              />
+            )}
           </CardContent>
         </Card>
       </div>

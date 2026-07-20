@@ -15,7 +15,7 @@ export default async function AgentLayout({ children }: { children: React.ReactN
     <DashboardShell
       navItems={navItems}
       userName={user.name ?? ""}
-      roleLabel={user.role === "MANAGER" ? "מנהל" : "סוכן"}
+      roleLabel={user.role === "MANAGER" ? "מנהל" : "מתווך"}
     >
       {children}
     </DashboardShell>

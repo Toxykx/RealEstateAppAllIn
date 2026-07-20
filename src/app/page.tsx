@@ -20,7 +20,7 @@ export default async function HomePage() {
               מוצאים את הבית הבא, או מוכרים בביטחון
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-muted-foreground sm:text-lg">
-              אופק נכסים מחברת בין קונים ומוכרים לסוכנים מסורים שמלווים כל שלב בעסקה — מהצגת
+              אופק נכסים מחברת בין קונים ומוכרים למתווכים מסורים שמלווים כל שלב בעסקה — מהצגת
               הנכס ועד לחתימה על החוזה.
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
@@ -31,7 +31,7 @@ export default async function HomePage() {
                 href="/contact"
                 className={buttonVariants({ size: "lg", variant: "outline" })}
               >
-                דברו עם סוכן
+                דברו עם מתווך
               </Link>
             </div>
           </div>

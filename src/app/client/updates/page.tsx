@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
 import { markAllNotificationsRead } from "@/lib/actions/notifications";
+import { ActionForm } from "@/components/action-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,11 +32,11 @@ export default async function UpdatesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">עדכונים</h1>
         {hasUnread && (
-          <form action={markAllNotificationsRead}>
+          <ActionForm action={markAllNotificationsRead}>
             <Button type="submit" variant="outline" size="sm">
               סימון הכל כנקרא
             </Button>
-          </form>
+          </ActionForm>
         )}
       </div>
 

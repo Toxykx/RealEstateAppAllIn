@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
+import type { ActionResult } from "@/components/action-form";
 
 const createAgentSchema = z.object({
   name: z.string().min(1, "יש להזין שם"),
@@ -44,17 +45,17 @@ export async function createAgent(_prevState: { error?: string } | undefined, fo
   });
 
   revalidatePath("/manager/agents");
-  redirect(`/manager/agents/${agent.id}`);
+  redirect(`/manager/agents/${agent.id}?created=1`);
 }
 
 const updateAgentSchema = z.object({
-  name: z.string().min(1),
+  name: z.string().min(1, "יש להזין שם"),
   phone: z.string().optional(),
   role: z.enum(["AGENT", "MANAGER"]),
   isActive: z.boolean(),
 });
 
-export async function updateAgent(agentId: string, formData: FormData) {
+export async function updateAgent(agentId: string, formData: FormData): Promise<ActionResult> {
   await requireUser(["MANAGER"]);
 
   const parsed = updateAgentSchema.safeParse({
@@ -63,10 +64,13 @@ export async function updateAgent(agentId: string, formData: FormData) {
     role: formData.get("role"),
     isActive: formData.get("isActive") === "on",
   });
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    return { success: false, message: parsed.error.issues[0]?.message ?? "אירעה שגיאה" };
+  }
 
   await prisma.user.update({ where: { id: agentId }, data: parsed.data });
 
   revalidatePath(`/manager/agents/${agentId}`);
   revalidatePath("/manager/agents");
+  return { success: true, message: "פרטי החשבון נשמרו בהצלחה" };
 }

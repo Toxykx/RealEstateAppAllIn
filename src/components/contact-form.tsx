@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { submitContactMessage, type ContactFormState } from "@/lib/actions/contact";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,11 +12,19 @@ const initialState: ContactFormState = { success: false };
 
 export function ContactForm({ propertyId }: { propertyId?: string }) {
   const [state, formAction, isPending] = useActionState(submitContactMessage, initialState);
+  const toasted = useRef(false);
+
+  useEffect(() => {
+    if (state.success && !toasted.current) {
+      toasted.current = true;
+      toast.success("ההודעה נשלחה בהצלחה");
+    }
+  }, [state.success]);
 
   if (state.success) {
     return (
       <p className="rounded-md bg-secondary p-4 text-sm">
-        תודה על פנייתך — סוכן מטעם אופק נכסים יצור איתך קשר בהקדם.
+        תודה על פנייתך — מתווך מטעם אופק נכסים יצור איתך קשר בהקדם.
       </p>
     );
   }
@@ -29,7 +38,7 @@ export function ContactForm({ propertyId }: { propertyId?: string }) {
           <Input id="name" name="name" required />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">אימייל</Label>
+          <Label htmlFor="email">כתובת אימייל</Label>
           <Input id="email" name="email" type="email" required />
         </div>
       </div>

@@ -43,7 +43,7 @@ export default async function AgentClientsPage() {
                 <TableHead>שם</TableHead>
                 <TableHead>אימייל</TableHead>
                 <TableHead>נכסים</TableHead>
-                {user.role === "MANAGER" && <TableHead>סוכן</TableHead>}
+                {user.role === "MANAGER" && <TableHead>מתווך</TableHead>}
                 <TableHead>סטטוס</TableHead>
               </TableRow>
             </TableHeader>

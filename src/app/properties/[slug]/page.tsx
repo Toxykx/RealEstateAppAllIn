@@ -4,6 +4,7 @@ import { Bath, BedDouble, MapPin, Phone, Ruler } from "lucide-react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { ContactForm } from "@/components/contact-form";
+import { WhatsAppButton } from "@/components/property/whatsapp-button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getPropertyBySlug } from "@/lib/properties";
@@ -70,7 +71,7 @@ export default async function PropertyDetailPage({
                     </Badge>
                     {property.bedrooms != null && (
                       <span className="flex items-center gap-1">
-                        <BedDouble className="h-4 w-4" /> {property.bedrooms} חדרי שינה
+                        <BedDouble className="h-4 w-4" /> {property.bedrooms} חדרים
                       </span>
                     )}
                     {property.bathrooms != null && (
@@ -94,14 +95,20 @@ export default async function PropertyDetailPage({
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">סוכן הנכס</CardTitle>
+                  <CardTitle className="text-lg">מתווך הנכס</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-1 text-sm">
+                <CardContent className="space-y-3 text-sm">
                   <p className="font-medium">{property.agent.name}</p>
                   {property.agent.phone && (
                     <p className="flex items-center gap-1 text-muted-foreground">
                       <Phone className="h-3.5 w-3.5" /> {property.agent.phone}
                     </p>
+                  )}
+                  {property.agent.phone && (
+                    <WhatsAppButton
+                      phone={property.agent.phone}
+                      propertyReference={`${property.title}, ${property.city}`}
+                    />
                   )}
                 </CardContent>
               </Card>

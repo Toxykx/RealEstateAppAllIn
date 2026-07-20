@@ -13,7 +13,7 @@ export default async function ManagerDashboardPage() {
   ]);
 
   const stats = [
-    { label: "סוכנים", value: agentCount },
+    { label: "מתווכים", value: agentCount },
     { label: "לקוחות", value: clientCount },
     { label: "נכסים", value: propertyCount },
     { label: "פניות חדשות", value: newInquiries },

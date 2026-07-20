@@ -18,4 +18,5 @@ export async function toggleFavorite(propertyId: string) {
   }
 
   revalidatePath("/client/search");
+  return { added: !existing };
 }

@@ -23,7 +23,7 @@ export function NewAgentForm() {
         <Input id="name" name="name" required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="email">אימייל</Label>
+        <Label htmlFor="email">כתובת אימייל</Label>
         <Input id="email" name="email" type="email" required />
       </div>
       <div className="space-y-2">
@@ -40,7 +40,7 @@ export function NewAgentForm() {
           name="role"
           defaultValue="AGENT"
           items={[
-            { value: "AGENT", label: "סוכן" },
+            { value: "AGENT", label: "מתווך" },
             { value: "MANAGER", label: "מנהל" },
           ]}
         >
@@ -48,7 +48,7 @@ export function NewAgentForm() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="AGENT">סוכן</SelectItem>
+            <SelectItem value="AGENT">מתווך</SelectItem>
             <SelectItem value="MANAGER">מנהל</SelectItem>
           </SelectContent>
         </Select>

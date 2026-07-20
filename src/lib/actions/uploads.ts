@@ -10,12 +10,15 @@ import {
   IMAGE_BUCKET,
   DOCUMENT_BUCKET,
 } from "@/lib/storage";
+import type { ActionResult } from "@/components/action-form";
 
-export async function uploadImageAction(propertyId: string, formData: FormData) {
+export async function uploadImageAction(propertyId: string, formData: FormData): Promise<ActionResult> {
   await requireUser(["AGENT", "MANAGER"]);
 
   const file = formData.get("file") as File | null;
-  if (!file || file.size === 0) return;
+  if (!file || file.size === 0) {
+    return { success: false, message: "יש לבחור קובץ תמונה" };
+  }
 
   const existingCount = await prisma.propertyImage.count({ where: { propertyId } });
   const { storageKey, url } = await uploadPropertyImage(propertyId, file, file.name);
@@ -31,25 +34,29 @@ export async function uploadImageAction(propertyId: string, formData: FormData) 
   });
 
   revalidatePath(`/agent/properties/${propertyId}`);
+  return { success: true, message: "התמונה הועלתה בהצלחה" };
 }
 
-export async function deleteImageAction(propertyId: string, imageId: string) {
+export async function deleteImageAction(propertyId: string, imageId: string): Promise<ActionResult> {
   await requireUser(["AGENT", "MANAGER"]);
 
   const image = await prisma.propertyImage.findUnique({ where: { id: imageId } });
-  if (!image) return;
+  if (!image) return { success: false, message: "התמונה לא נמצאה" };
 
   await prisma.propertyImage.delete({ where: { id: imageId } });
   await deleteStoredFile(IMAGE_BUCKET, image.storageKey).catch(() => {});
 
   revalidatePath(`/agent/properties/${propertyId}`);
+  return { success: true, message: "התמונה נמחקה בהצלחה" };
 }
 
-export async function uploadDocumentAction(propertyId: string, formData: FormData) {
+export async function uploadDocumentAction(propertyId: string, formData: FormData): Promise<ActionResult> {
   const user = await requireUser(["AGENT", "MANAGER"]);
 
   const file = formData.get("file") as File | null;
-  if (!file || file.size === 0) return;
+  if (!file || file.size === 0) {
+    return { success: false, message: "יש לבחור קובץ מסמך" };
+  }
 
   const docType = (formData.get("docType") as string) || "OTHER";
   const visibleToClient = formData.get("visibleToClient") === "on";
@@ -83,16 +90,18 @@ export async function uploadDocumentAction(propertyId: string, formData: FormDat
   }
 
   revalidatePath(`/agent/properties/${propertyId}`);
+  return { success: true, message: "המסמך הועלה בהצלחה" };
 }
 
-export async function deleteDocumentAction(propertyId: string, documentId: string) {
+export async function deleteDocumentAction(propertyId: string, documentId: string): Promise<ActionResult> {
   await requireUser(["AGENT", "MANAGER"]);
 
   const doc = await prisma.propertyDocument.findUnique({ where: { id: documentId } });
-  if (!doc) return;
+  if (!doc) return { success: false, message: "המסמך לא נמצא" };
 
   await prisma.propertyDocument.delete({ where: { id: documentId } });
   await deleteStoredFile(DOCUMENT_BUCKET, doc.storageKey).catch(() => {});
 
   revalidatePath(`/agent/properties/${propertyId}`);
+  return { success: true, message: "המסמך נמחק בהצלחה" };
 }

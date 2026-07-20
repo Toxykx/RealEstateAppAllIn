@@ -1,7 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { Trash2 } from "lucide-react";
+import { ActionForm } from "@/components/action-form";
+import { CreatedToast } from "@/components/created-toast";
 import { prisma } from "@/lib/prisma";
 import { requireUser, agentScope } from "@/lib/authz";
 import { getSignedDocumentUrl } from "@/lib/storage";
@@ -89,6 +92,9 @@ export default async function PropertyDetailPage({
 
   return (
     <div className="space-y-6">
+      <Suspense fallback={null}>
+        <CreatedToast message="הנכס נוצר בהצלחה" />
+      </Suspense>
       <div>
         <Link href="/agent/properties" className="text-sm text-muted-foreground hover:underline">
           &rarr; חזרה לנכסים
@@ -107,10 +113,10 @@ export default async function PropertyDetailPage({
         {/* Basic info */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-lg">פרטים</CardTitle>
+            <CardTitle className="text-lg">עריכת נכס</CardTitle>
           </CardHeader>
           <CardContent>
-            <form action={boundUpdateProperty} className="space-y-4">
+            <ActionForm action={boundUpdateProperty} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="title">כותרת</Label>
@@ -160,7 +166,7 @@ export default async function PropertyDetailPage({
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
-                  <Label htmlFor="bedrooms">חדרי שינה</Label>
+                  <Label htmlFor="bedrooms">חדרים</Label>
                   <Input id="bedrooms" name="bedrooms" type="number" defaultValue={property.bedrooms ?? ""} />
                 </div>
                 <div className="space-y-2">
@@ -173,7 +179,7 @@ export default async function PropertyDetailPage({
                 </div>
               </div>
               <Button type="submit">שמירת פרטים</Button>
-            </form>
+            </ActionForm>
           </CardContent>
         </Card>
 
@@ -184,7 +190,7 @@ export default async function PropertyDetailPage({
               <CardTitle className="text-lg">סטטוס פרסום</CardTitle>
             </CardHeader>
             <CardContent>
-              <form action={boundListingStatus} className="flex gap-2">
+              <ActionForm action={boundListingStatus} className="flex gap-2">
                 <Select
                   name="listingStatus"
                   defaultValue={property.listingStatus}
@@ -202,7 +208,7 @@ export default async function PropertyDetailPage({
                   </SelectContent>
                 </Select>
                 <Button type="submit">שמירה</Button>
-              </form>
+              </ActionForm>
             </CardContent>
           </Card>
 
@@ -223,7 +229,7 @@ export default async function PropertyDetailPage({
                   </li>
                 ))}
               </ul>
-              <form action={boundDealStage} className="flex gap-2">
+              <ActionForm action={boundDealStage} className="flex gap-2">
                 <Select name="dealStage" defaultValue={property.dealStage} items={[...DEAL_STAGE_STEPS]}>
                   <SelectTrigger className="w-full">
                     <SelectValue />
@@ -237,7 +243,7 @@ export default async function PropertyDetailPage({
                   </SelectContent>
                 </Select>
                 <Button type="submit">עדכון</Button>
-              </form>
+              </ActionForm>
             </CardContent>
           </Card>
 
@@ -246,7 +252,7 @@ export default async function PropertyDetailPage({
               <CardTitle className="text-lg">לקוח מוקצה (בעלים)</CardTitle>
             </CardHeader>
             <CardContent>
-              <form action={boundAssign} className="flex gap-2">
+              <ActionForm action={boundAssign} className="flex gap-2">
                 <Select
                   name="clientId"
                   defaultValue={property.ownerClientId ?? "none"}
@@ -265,7 +271,7 @@ export default async function PropertyDetailPage({
                   </SelectContent>
                 </Select>
                 <Button type="submit">שמירה</Button>
-              </form>
+              </ActionForm>
             </CardContent>
           </Card>
         </div>
@@ -282,23 +288,24 @@ export default async function PropertyDetailPage({
               <div key={image.id} className="group relative aspect-square overflow-hidden rounded-md bg-muted">
                 <Image src={image.url} alt="" fill className="object-cover" />
                 {image.isCover && <Badge className="absolute start-1 top-1">תמונת נושא</Badge>}
-                <form action={deleteImageAction.bind(null, property.id, image.id)}>
+                <ActionForm action={deleteImageAction.bind(null, property.id, image.id)}>
                   <Button
                     type="submit"
                     size="icon-sm"
                     variant="destructive"
+                    aria-label="מחיקת תמונה"
                     className="absolute end-1 top-1 opacity-0 transition-opacity group-hover:opacity-100"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
-                </form>
+                </ActionForm>
               </div>
             ))}
           </div>
-          <form action={boundUploadImage} encType="multipart/form-data" className="flex flex-wrap items-end gap-2">
+          <ActionForm action={boundUploadImage} className="flex flex-wrap items-end gap-2">
             <Input type="file" name="file" accept="image/*" required className="max-w-xs" />
             <Button type="submit">העלאת תמונה</Button>
-          </form>
+          </ActionForm>
         </CardContent>
       </Card>
 
@@ -322,20 +329,19 @@ export default async function PropertyDetailPage({
                   <Badge variant="outline">{DOC_TYPE_LABELS[doc.docType] ?? doc.docType}</Badge>
                   {doc.visibleToClient && <Badge variant="secondary">גלוי ללקוח</Badge>}
                 </div>
-                <form action={deleteDocumentAction.bind(null, property.id, doc.id)}>
-                  <Button type="submit" size="icon-sm" variant="ghost">
+                <ActionForm action={deleteDocumentAction.bind(null, property.id, doc.id)}>
+                  <Button type="submit" size="icon-sm" variant="ghost" aria-label="מחיקת מסמך">
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
-                </form>
+                </ActionForm>
               </li>
             ))}
             {property.documents.length === 0 && (
               <p className="text-sm text-muted-foreground">עדיין לא הועלו מסמכים.</p>
             )}
           </ul>
-          <form
+          <ActionForm
             action={boundUploadDoc}
-            encType="multipart/form-data"
             className="flex flex-wrap items-end gap-2"
           >
             <Input type="file" name="file" required className="max-w-xs" />
@@ -362,7 +368,7 @@ export default async function PropertyDetailPage({
               גלוי ללקוח
             </label>
             <Button type="submit">העלאת מסמך</Button>
-          </form>
+          </ActionForm>
         </CardContent>
       </Card>
 
@@ -372,7 +378,7 @@ export default async function PropertyDetailPage({
           <CardTitle className="text-lg">ציר זמן</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <form action={boundPostUpdate} className="space-y-2">
+          <ActionForm action={boundPostUpdate} className="space-y-2">
             <Textarea name="message" placeholder="כתבו עדכון עבור נכס זה..." rows={2} required />
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -381,7 +387,7 @@ export default async function PropertyDetailPage({
               </label>
               <Button type="submit">פרסום עדכון</Button>
             </div>
-          </form>
+          </ActionForm>
           <ul className="space-y-3">
             {property.updates.map((update) => (
               <li key={update.id} className="rounded-md border p-3 text-sm">
@@ -407,7 +413,7 @@ export default async function PropertyDetailPage({
           <CardTitle className="text-lg">ביקורים</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <form action={boundScheduleVisit} className="grid gap-2 sm:grid-cols-2">
+          <ActionForm action={boundScheduleVisit} className="grid gap-2 sm:grid-cols-2">
             <Input type="datetime-local" name="scheduledAt" required />
             <Input name="visitorName" placeholder="שם המבקר (לא חובה)" />
             <Input name="visitorPhone" placeholder="טלפון המבקר (לא חובה)" />
@@ -415,7 +421,7 @@ export default async function PropertyDetailPage({
             <Button type="submit" className="sm:col-span-2">
               קביעת ביקור
             </Button>
-          </form>
+          </ActionForm>
           <ul className="space-y-2">
             {property.visits.map((visit) => (
               <li key={visit.id} className="flex items-center justify-between rounded-md border p-3 text-sm">
@@ -423,7 +429,7 @@ export default async function PropertyDetailPage({
                   <p className="font-medium">{formatDateTime(visit.scheduledAt)}</p>
                   <p className="text-muted-foreground">{visit.visitorName ?? property.ownerClient?.name ?? "—"}</p>
                 </div>
-                <form action={updateVisitStatus.bind(null, property.id, visit.id)} className="flex items-center gap-2">
+                <ActionForm action={updateVisitStatus.bind(null, property.id, visit.id)} className="flex items-center gap-2">
                   <Select
                     name="status"
                     defaultValue={visit.status}
@@ -445,7 +451,7 @@ export default async function PropertyDetailPage({
                   <Button type="submit" size="sm">
                     עדכון
                   </Button>
-                </form>
+                </ActionForm>
               </li>
             ))}
             {property.visits.length === 0 && (

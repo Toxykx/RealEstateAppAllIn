@@ -10,7 +10,7 @@ const rubik = Rubik({
 
 export const metadata: Metadata = {
   title: "אופק נכסים",
-  description: "מחברים בין סוכנים ולקוחות בכל שלב בעסקת נדל״ן.",
+  description: "מחברים בין מתווכים ולקוחות בכל שלב בעסקת נדל״ן.",
 };
 
 export default function RootLayout({

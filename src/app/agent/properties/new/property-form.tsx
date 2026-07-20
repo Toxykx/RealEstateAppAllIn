@@ -73,7 +73,7 @@ export function NewPropertyForm() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor="bedrooms">חדרי שינה</Label>
+          <Label htmlFor="bedrooms">חדרים</Label>
           <Input id="bedrooms" name="bedrooms" type="number" min={0} />
         </div>
         <div className="space-y-2">

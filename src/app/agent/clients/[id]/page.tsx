@@ -1,8 +1,11 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
 import { updateClient } from "@/lib/actions/clients";
+import { ActionForm } from "@/components/action-form";
+import { CreatedToast } from "@/components/created-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +36,9 @@ export default async function ClientDetailPage({
 
   return (
     <div className="space-y-6">
+      <Suspense fallback={null}>
+        <CreatedToast message="הלקוח נוצר בהצלחה" />
+      </Suspense>
       <div>
         <Link href="/agent/clients" className="text-sm text-muted-foreground hover:underline">
           &rarr; חזרה ללקוחות
@@ -47,7 +53,7 @@ export default async function ClientDetailPage({
             <CardTitle className="text-lg">פרטי הלקוח</CardTitle>
           </CardHeader>
           <CardContent>
-            <form action={boundUpdate} className="space-y-4">
+            <ActionForm action={boundUpdate} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">שם מלא</Label>
                 <Input id="name" name="name" defaultValue={client.name} required />
@@ -61,7 +67,7 @@ export default async function ClientDetailPage({
                 <Label htmlFor="isActive">חשבון פעיל</Label>
               </div>
               <Button type="submit">שמירת שינויים</Button>
-            </form>
+            </ActionForm>
           </CardContent>
         </Card>
 
@@ -74,7 +80,7 @@ export default async function ClientDetailPage({
               <p className="text-sm text-muted-foreground">
                 עדיין לא הוקצו נכסים.{" "}
                 <Link href="/agent/properties/new" className="text-primary hover:underline">
-                  צרו נכס חדש
+                  הוספת נכס
                 </Link>{" "}
                 והקצו אותו ללקוח זה.
               </p>

@@ -16,7 +16,7 @@ export function NewClientForm() {
         <Input id="name" name="name" required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="email">אימייל</Label>
+        <Label htmlFor="email">כתובת אימייל</Label>
         <Input id="email" name="email" type="email" required />
       </div>
       <div className="space-y-2">

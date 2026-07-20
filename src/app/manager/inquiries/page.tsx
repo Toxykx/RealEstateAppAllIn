@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
 import { updateInquiry } from "@/lib/actions/inquiries";
+import { ActionForm } from "@/components/action-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,7 +57,7 @@ export default async function InquiriesPage() {
                 <p className="text-sm">{inquiry.message}</p>
                 <p className="text-xs text-muted-foreground">{formatDateTime(inquiry.createdAt)}</p>
               </div>
-              <form action={updateInquiry.bind(null, inquiry.id)} className="flex items-center gap-2">
+              <ActionForm action={updateInquiry.bind(null, inquiry.id)} className="flex items-center gap-2">
                 <Select
                   name="status"
                   defaultValue={inquiry.status}
@@ -78,7 +79,7 @@ export default async function InquiriesPage() {
                 <Button type="submit" size="sm">
                   שמירה
                 </Button>
-              </form>
+              </ActionForm>
             </CardContent>
           </Card>
         ))}

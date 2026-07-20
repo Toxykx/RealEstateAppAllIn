@@ -20,7 +20,7 @@ export const LISTING_STATUS_LABELS: Record<string, string> = {
   AVAILABLE: "זמין",
   IN_PROGRESS: "בתהליך",
   SOLD: "נמכר",
-  RENTED: "מושכר",
+  RENTED: "הושכר",
   ARCHIVED: "בארכיון",
 };
 

@@ -32,7 +32,7 @@ export default async function ProfilePage() {
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <div>
-            <p className="text-muted-foreground">אימייל</p>
+            <p className="text-muted-foreground">כתובת אימייל</p>
             <p className="font-medium">{user.email}</p>
           </div>
           <div>
@@ -40,7 +40,7 @@ export default async function ProfilePage() {
             <p className="font-medium">{user.phone ?? "לא צויין"}</p>
           </div>
           <p className="text-xs text-muted-foreground">
-            כדי לעדכן את פרטי הקשר שלך, פנה/י לסוכן שלך.
+            כדי לעדכן את פרטי הקשר שלך, פנה/י למתווך שלך.
           </p>
         </CardContent>
       </Card>

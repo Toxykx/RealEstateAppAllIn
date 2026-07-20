@@ -6,6 +6,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
 import { DEAL_STAGE_STEPS } from "@/lib/format";
+import type { ActionResult } from "@/components/action-form";
 import type { DealStage } from "@prisma/client";
 
 function slugify(title: string, city: string) {
@@ -56,10 +57,10 @@ export async function createProperty(_prevState: { error?: string } | undefined,
   });
 
   revalidatePath("/agent/properties");
-  redirect(`/agent/properties/${property.id}`);
+  redirect(`/agent/properties/${property.id}?created=1`);
 }
 
-export async function updateProperty(propertyId: string, formData: FormData) {
+export async function updateProperty(propertyId: string, formData: FormData): Promise<ActionResult> {
   await requireUser(["AGENT", "MANAGER"]);
 
   const parsed = propertySchema.safeParse({
@@ -74,13 +75,16 @@ export async function updateProperty(propertyId: string, formData: FormData) {
     bathrooms: formData.get("bathrooms") || null,
     areaSqm: formData.get("areaSqm") || null,
   });
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    return { success: false, message: parsed.error.issues[0]?.message ?? "אירעה שגיאה בשמירת הפרטים" };
+  }
 
   await prisma.property.update({ where: { id: propertyId }, data: parsed.data });
   revalidatePath(`/agent/properties/${propertyId}`);
+  return { success: true, message: "פרטי הנכס נשמרו בהצלחה" };
 }
 
-export async function assignPropertyToClient(propertyId: string, formData: FormData) {
+export async function assignPropertyToClient(propertyId: string, formData: FormData): Promise<ActionResult> {
   await requireUser(["AGENT", "MANAGER"]);
   const clientId = formData.get("clientId") as string;
 
@@ -102,9 +106,10 @@ export async function assignPropertyToClient(propertyId: string, formData: FormD
   }
 
   revalidatePath(`/agent/properties/${propertyId}`);
+  return { success: true, message: "הלקוח המוקצה עודכן בהצלחה" };
 }
 
-export async function changeListingStatus(propertyId: string, formData: FormData) {
+export async function changeListingStatus(propertyId: string, formData: FormData): Promise<ActionResult> {
   await requireUser(["AGENT", "MANAGER"]);
   const listingStatus = formData.get("listingStatus") as string;
 
@@ -114,9 +119,10 @@ export async function changeListingStatus(propertyId: string, formData: FormData
   });
 
   revalidatePath(`/agent/properties/${propertyId}`);
+  return { success: true, message: "סטטוס הפרסום עודכן בהצלחה" };
 }
 
-export async function changeDealStage(propertyId: string, formData: FormData) {
+export async function changeDealStage(propertyId: string, formData: FormData): Promise<ActionResult> {
   const user = await requireUser(["AGENT", "MANAGER"]);
   const dealStage = formData.get("dealStage") as DealStage;
 
@@ -153,6 +159,7 @@ export async function changeDealStage(propertyId: string, formData: FormData) {
   }
 
   revalidatePath(`/agent/properties/${propertyId}`);
+  return { success: true, message: "שלב העסקה עודכן בהצלחה" };
 }
 
 const updateSchema = z.object({
@@ -160,14 +167,16 @@ const updateSchema = z.object({
   isInternal: z.boolean(),
 });
 
-export async function postPropertyUpdate(propertyId: string, formData: FormData) {
+export async function postPropertyUpdate(propertyId: string, formData: FormData): Promise<ActionResult> {
   const user = await requireUser(["AGENT", "MANAGER"]);
 
   const parsed = updateSchema.safeParse({
     message: formData.get("message"),
     isInternal: formData.get("isInternal") === "on",
   });
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    return { success: false, message: "יש להזין תוכן לעדכון" };
+  }
 
   await prisma.propertyUpdate.create({
     data: {
@@ -193,6 +202,7 @@ export async function postPropertyUpdate(propertyId: string, formData: FormData)
   }
 
   revalidatePath(`/agent/properties/${propertyId}`);
+  return { success: true, message: "העדכון פורסם בהצלחה" };
 }
 
 const visitSchema = z.object({
@@ -202,7 +212,7 @@ const visitSchema = z.object({
   notes: z.string().optional(),
 });
 
-export async function scheduleVisit(propertyId: string, formData: FormData) {
+export async function scheduleVisit(propertyId: string, formData: FormData): Promise<ActionResult> {
   const user = await requireUser(["AGENT", "MANAGER"]);
 
   const parsed = visitSchema.safeParse({
@@ -211,7 +221,9 @@ export async function scheduleVisit(propertyId: string, formData: FormData) {
     visitorPhone: formData.get("visitorPhone") || undefined,
     notes: formData.get("notes") || undefined,
   });
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    return { success: false, message: "יש לבחור תאריך ושעה לביקור" };
+  }
 
   const property = await prisma.property.findUnique({ where: { id: propertyId } });
 
@@ -239,12 +251,14 @@ export async function scheduleVisit(propertyId: string, formData: FormData) {
   }
 
   revalidatePath(`/agent/properties/${propertyId}`);
+  return { success: true, message: "הביקור נקבע בהצלחה" };
 }
 
-export async function updateVisitStatus(propertyId: string, visitId: string, formData: FormData) {
+export async function updateVisitStatus(propertyId: string, visitId: string, formData: FormData): Promise<ActionResult> {
   await requireUser(["AGENT", "MANAGER"]);
   const status = formData.get("status") as string;
 
   await prisma.visit.update({ where: { id: visitId }, data: { status: status as never } });
   revalidatePath(`/agent/properties/${propertyId}`);
+  return { success: true, message: "סטטוס הביקור עודכן בהצלחה" };
 }

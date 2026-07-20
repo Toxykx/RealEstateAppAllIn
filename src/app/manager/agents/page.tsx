@@ -26,9 +26,9 @@ export default async function ManagerAgentsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">סוכנים ומנהלים</h1>
+        <h1 className="text-2xl font-bold">מתווכים ומנהלים</h1>
         <Link href="/manager/agents/new" className={buttonVariants()}>
-          <Plus className="h-4 w-4" /> סוכן חדש
+          <Plus className="h-4 w-4" /> מתווך חדש
         </Link>
       </div>
 
@@ -56,7 +56,7 @@ export default async function ManagerAgentsPage() {
                   <TableCell>{agent.email}</TableCell>
                   <TableCell>
                     <Badge variant={agent.role === "MANAGER" ? "default" : "outline"}>
-                      {agent.role === "MANAGER" ? "מנהל" : "סוכן"}
+                      {agent.role === "MANAGER" ? "מנהל" : "מתווך"}
                     </Badge>
                   </TableCell>
                   <TableCell>{agent._count.managedClients}</TableCell>

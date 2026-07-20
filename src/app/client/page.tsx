@@ -22,7 +22,7 @@ export default async function MyPropertiesPage() {
       {properties.length === 0 && (
         <Card>
           <CardContent className="pt-6 text-sm text-muted-foreground">
-            עדיין לא הוקצו לך נכסים. הסוכן שלך יוסיף נכס כאן ברגע שיהיה מוכן.
+            עדיין לא הוקצו לך נכסים. המתווך שלך יוסיף נכס כאן ברגע שיהיה מוכן.
           </CardContent>
         </Card>
       )}

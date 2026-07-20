@@ -1,8 +1,11 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
 import { updateAgent } from "@/lib/actions/agents";
+import { ActionForm } from "@/components/action-form";
+import { CreatedToast } from "@/components/created-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,9 +37,12 @@ export default async function AgentDetailPage({
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
+      <Suspense fallback={null}>
+        <CreatedToast message="המתווך נוצר בהצלחה" />
+      </Suspense>
       <div>
         <Link href="/manager/agents" className="text-sm text-muted-foreground hover:underline">
-          &rarr; חזרה לסוכנים
+          &rarr; חזרה למתווכים
         </Link>
         <h1 className="mt-1 text-2xl font-bold">{agent.name}</h1>
         <p className="text-muted-foreground">{agent.email}</p>
@@ -47,7 +53,7 @@ export default async function AgentDetailPage({
           <CardTitle className="text-lg">חשבון</CardTitle>
         </CardHeader>
         <CardContent>
-          <form action={boundUpdate} className="space-y-4">
+          <ActionForm action={boundUpdate} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">שם מלא</Label>
               <Input id="name" name="name" defaultValue={agent.name} required />
@@ -62,7 +68,7 @@ export default async function AgentDetailPage({
                 name="role"
                 defaultValue={agent.role}
                 items={[
-                  { value: "AGENT", label: "סוכן" },
+                  { value: "AGENT", label: "מתווך" },
                   { value: "MANAGER", label: "מנהל" },
                 ]}
               >
@@ -70,7 +76,7 @@ export default async function AgentDetailPage({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="AGENT">סוכן</SelectItem>
+                  <SelectItem value="AGENT">מתווך</SelectItem>
                   <SelectItem value="MANAGER">מנהל</SelectItem>
                 </SelectContent>
               </Select>
@@ -84,7 +90,7 @@ export default async function AgentDetailPage({
               נכסים.
             </p>
             <Button type="submit">שמירת שינויים</Button>
-          </form>
+          </ActionForm>
         </CardContent>
       </Card>
     </div>

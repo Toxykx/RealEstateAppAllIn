@@ -36,13 +36,13 @@ export default async function LoginPage({
         <CardHeader>
           <CardTitle className="text-xl">התחברות</CardTitle>
           <CardDescription>
-            השתמשו באימייל ובסיסמה שקיבלתם מהסוכן שלכם.
+            השתמשו באימייל ובסיסמה שקיבלתם מהמתווך שלכם.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form action={loginAction} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">אימייל</Label>
+              <Label htmlFor="email">כתובת אימייל</Label>
               <Input id="email" name="email" type="email" required autoComplete="email" />
             </div>
             <div className="space-y-2">
