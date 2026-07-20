@@ -1,0 +1,258 @@
+// Real Estate Management Platform — Prisma schema
+// See technical plan for the full rationale behind each design decision.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CLIENT
+  AGENT
+  MANAGER
+}
+
+enum PropertyType {
+  APARTMENT
+  HOUSE
+  VILLA
+  LAND
+  COMMERCIAL
+}
+
+enum ListingStatus {
+  DRAFT
+  AVAILABLE
+  IN_PROGRESS
+  SOLD
+  RENTED
+  ARCHIVED
+}
+
+enum DealStage {
+  CONTRACT_SIGNED
+  PHOTOS_COMPLETED
+  PUBLISHED
+  VISITS
+  NEGOTIATION
+  SOLD
+}
+
+enum PropertySource {
+  MANUAL
+  MONDAY
+  GOOGLE_SHEETS
+}
+
+enum DocumentType {
+  CONTRACT
+  ID
+  OTHER
+}
+
+enum VisitStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum ContactStatus {
+  NEW
+  CONTACTED
+  CLOSED
+}
+
+enum NotificationType {
+  STAGE_CHANGE
+  NEW_UPDATE
+  NEW_DOCUMENT
+  VISIT_SCHEDULED
+  PROPERTY_ASSIGNED
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  role          Role
+  phone         String?
+  avatarUrl     String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Self-relation: the Agent responsible for a Client user (only meaningful when role = CLIENT)
+  managingAgentId String?
+  managingAgent   User?   @relation("AgentClients", fields: [managingAgentId], references: [id], onDelete: SetNull)
+  managedClients  User[]  @relation("AgentClients")
+
+  ownedProperties    Property[]         @relation("OwnerClient")
+  agentProperties    Property[]         @relation("ResponsibleAgent")
+  uploadedDocuments  PropertyDocument[]
+  authoredUpdates    PropertyUpdate[]
+  visitsAsClient     Visit[]            @relation("ClientVisits")
+  createdVisits      Visit[]            @relation("AgentCreatedVisits")
+  favorites          Favorite[]
+  assignedInquiries  ContactMessage[]
+  notifications      Notification[]
+
+  @@index([role])
+}
+
+model Property {
+  id            String         @id @default(cuid())
+  title         String
+  addressLine   String
+  city          String
+  description   String
+  price         Decimal
+  currency      String         @default("ILS")
+  propertyType  PropertyType
+  bedrooms      Int?
+  bathrooms     Int?
+  areaSqm       Float?
+  lat           Float?
+  lng           Float?
+  slug          String         @unique
+
+  listingStatus ListingStatus  @default(DRAFT)
+  dealStage     DealStage      @default(CONTRACT_SIGNED)
+
+  source        PropertySource @default(MANUAL)
+  externalId    String?
+
+  ownerClientId String?
+  ownerClient   User?          @relation("OwnerClient", fields: [ownerClientId], references: [id], onDelete: SetNull)
+
+  agentId       String
+  agent         User           @relation("ResponsibleAgent", fields: [agentId], references: [id])
+
+  images        PropertyImage[]
+  documents     PropertyDocument[]
+  updates       PropertyUpdate[]
+  visits        Visit[]
+  favorites     Favorite[]
+  contactMessages ContactMessage[]
+  notifications Notification[]
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([source, externalId])
+  @@index([city])
+  @@index([propertyType])
+  @@index([listingStatus])
+  @@index([price])
+}
+
+model PropertyImage {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  url        String
+  storageKey String
+  sortOrder  Int      @default(0)
+  isCover    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([propertyId])
+}
+
+model PropertyDocument {
+  id              String       @id @default(cuid())
+  propertyId      String
+  property        Property     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  name            String
+  fileUrl         String
+  storageKey      String
+  docType         DocumentType @default(OTHER)
+  visibleToClient Boolean      @default(false)
+  uploadedById    String
+  uploadedBy      User         @relation(fields: [uploadedById], references: [id])
+  createdAt       DateTime     @default(now())
+
+  @@index([propertyId])
+}
+
+model PropertyUpdate {
+  id             String     @id @default(cuid())
+  propertyId     String
+  property       Property   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  message        String
+  isInternal     Boolean    @default(false)
+  stageChangedTo DealStage?
+  createdById    String
+  createdBy      User       @relation(fields: [createdById], references: [id])
+  createdAt      DateTime   @default(now())
+
+  @@index([propertyId])
+}
+
+model Visit {
+  id           String      @id @default(cuid())
+  propertyId   String
+  property     Property    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  clientId     String?
+  client       User?       @relation("ClientVisits", fields: [clientId], references: [id], onDelete: SetNull)
+  visitorName  String?
+  visitorPhone String?
+  visitorEmail String?
+
+  scheduledAt  DateTime
+  status       VisitStatus @default(SCHEDULED)
+  notes        String?
+
+  createdById  String
+  createdBy    User        @relation("AgentCreatedVisits", fields: [createdById], references: [id])
+  createdAt    DateTime    @default(now())
+
+  @@index([propertyId])
+  @@index([clientId])
+}
+
+model Favorite {
+  id         String   @id @default(cuid())
+  clientId   String
+  client     User     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([clientId, propertyId])
+}
+
+model ContactMessage {
+  id             String        @id @default(cuid())
+  name           String
+  email          String
+  phone          String?
+  message        String
+  propertyId     String?
+  property       Property?     @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  status         ContactStatus @default(NEW)
+  assignedAgentId String?
+  assignedAgent  User?         @relation(fields: [assignedAgentId], references: [id], onDelete: SetNull)
+  createdAt      DateTime      @default(now())
+
+  @@index([status])
+}
+
+model Notification {
+  id         String           @id @default(cuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       NotificationType
+  propertyId String?
+  property   Property?        @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  message    String
+  isRead     Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+
+  @@index([userId, isRead])
+}

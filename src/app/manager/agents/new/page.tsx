@@ -1,0 +1,18 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { NewAgentForm } from "./agent-form";
+
+export default function NewAgentPage() {
+  return (
+    <div className="mx-auto max-w-lg space-y-6">
+      <h1 className="text-2xl font-bold">New agent</h1>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Account details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <NewAgentForm />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
