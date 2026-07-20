@@ -19,43 +19,43 @@ export function NewAgentForm() {
   return (
     <form action={formAction} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="name">Full name</Label>
+        <Label htmlFor="name">שם מלא</Label>
         <Input id="name" name="name" required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">אימייל</Label>
         <Input id="email" name="email" type="email" required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="phone">Phone (optional)</Label>
+        <Label htmlFor="phone">טלפון (לא חובה)</Label>
         <Input id="phone" name="phone" type="tel" />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">Temporary password</Label>
+        <Label htmlFor="password">סיסמה זמנית</Label>
         <Input id="password" name="password" type="text" required minLength={6} />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="role">Role</Label>
+        <Label htmlFor="role">תפקיד</Label>
         <Select
           name="role"
           defaultValue="AGENT"
           items={[
-            { value: "AGENT", label: "Agent" },
-            { value: "MANAGER", label: "Manager" },
+            { value: "AGENT", label: "סוכן" },
+            { value: "MANAGER", label: "מנהל" },
           ]}
         >
           <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="AGENT">Agent</SelectItem>
-            <SelectItem value="MANAGER">Manager</SelectItem>
+            <SelectItem value="AGENT">סוכן</SelectItem>
+            <SelectItem value="MANAGER">מנהל</SelectItem>
           </SelectContent>
         </Select>
       </div>
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       <Button type="submit" disabled={isPending}>
-        {isPending ? "Creating..." : "Create account"}
+        {isPending ? "יוצר..." : "יצירת חשבון"}
       </Button>
     </form>
   );

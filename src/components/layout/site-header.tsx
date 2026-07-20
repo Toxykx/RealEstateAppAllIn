@@ -8,14 +8,14 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2 font-semibold">
           <Building2 className="h-5 w-5 text-primary" />
-          <span>Horizon Realty</span>
+          <span>אופק נכסים</span>
         </Link>
         <nav className="hidden items-center gap-6 text-sm font-medium sm:flex">
           <Link href="/properties" className="text-muted-foreground transition-colors hover:text-foreground">
-            Properties
+            נכסים
           </Link>
           <Link href="/contact" className="text-muted-foreground transition-colors hover:text-foreground">
-            Contact
+            צור קשר
           </Link>
         </nav>
         <div className="flex items-center gap-2">
@@ -23,10 +23,10 @@ export function SiteHeader() {
             href="/properties"
             className={buttonVariants({ variant: "ghost", size: "sm", className: "sm:hidden" })}
           >
-            Properties
+            נכסים
           </Link>
           <Link href="/login" className={buttonVariants({ size: "sm" })}>
-            Sign in
+            התחברות
           </Link>
         </div>
       </div>

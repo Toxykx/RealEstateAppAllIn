@@ -29,9 +29,9 @@ export default async function AgentClientsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Clients</h1>
+        <h1 className="text-2xl font-bold">לקוחות</h1>
         <Link href="/agent/clients/new" className={buttonVariants()}>
-          <Plus className="h-4 w-4" /> New client
+          <Plus className="h-4 w-4" /> לקוח חדש
         </Link>
       </div>
 
@@ -40,11 +40,11 @@ export default async function AgentClientsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Properties</TableHead>
-                {user.role === "MANAGER" && <TableHead>Agent</TableHead>}
-                <TableHead>Status</TableHead>
+                <TableHead>שם</TableHead>
+                <TableHead>אימייל</TableHead>
+                <TableHead>נכסים</TableHead>
+                {user.role === "MANAGER" && <TableHead>סוכן</TableHead>}
+                <TableHead>סטטוס</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -62,7 +62,7 @@ export default async function AgentClientsPage() {
                   )}
                   <TableCell>
                     <Badge variant={client.isActive ? "secondary" : "outline"}>
-                      {client.isActive ? "Active" : "Inactive"}
+                      {client.isActive ? "פעיל" : "לא פעיל"}
                     </Badge>
                   </TableCell>
                 </TableRow>
@@ -70,7 +70,7 @@ export default async function AgentClientsPage() {
               {clients.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground">
-                    No clients yet.
+                    עדיין אין לקוחות.
                   </TableCell>
                 </TableRow>
               )}

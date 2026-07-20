@@ -31,20 +31,20 @@ export default async function ClientSearchPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Search properties</h1>
+      <h1 className="text-2xl font-bold">חיפוש נכסים</h1>
 
       <form method="get" className="grid grid-cols-1 gap-3 rounded-lg border bg-card p-4 sm:grid-cols-4">
-        <Input name="q" placeholder="Search title or address" defaultValue={params.q} />
+        <Input name="q" placeholder="חיפוש לפי כותרת או כתובת" defaultValue={params.q} />
         <Select
           name="city"
           defaultValue={params.city || "all"}
-          items={[{ value: "all", label: "All cities" }, ...cities.map((city) => ({ value: city, label: city }))]}
+          items={[{ value: "all", label: "כל הערים" }, ...cities.map((city) => ({ value: city, label: city }))]}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="City" />
+            <SelectValue placeholder="עיר" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All cities</SelectItem>
+            <SelectItem value="all">כל הערים</SelectItem>
             {cities.map((city) => (
               <SelectItem key={city} value={city}>
                 {city}
@@ -56,15 +56,15 @@ export default async function ClientSearchPage({
           name="propertyType"
           defaultValue={params.propertyType || "all"}
           items={[
-            { value: "all", label: "All types" },
+            { value: "all", label: "כל הסוגים" },
             ...Object.entries(PROPERTY_TYPE_LABELS).map(([value, label]) => ({ value, label })),
           ]}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Type" />
+            <SelectValue placeholder="סוג נכס" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All types</SelectItem>
+            <SelectItem value="all">כל הסוגים</SelectItem>
             {Object.entries(PROPERTY_TYPE_LABELS).map(([value, label]) => (
               <SelectItem key={value} value={value}>
                 {label}
@@ -72,11 +72,11 @@ export default async function ClientSearchPage({
             ))}
           </SelectContent>
         </Select>
-        <Button type="submit">Apply filters</Button>
+        <Button type="submit">החלת סינון</Button>
       </form>
 
       {properties.length === 0 ? (
-        <p className="text-muted-foreground">No properties match your search.</p>
+        <p className="text-muted-foreground">לא נמצאו נכסים התואמים את החיפוש.</p>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {properties.map((property) => (

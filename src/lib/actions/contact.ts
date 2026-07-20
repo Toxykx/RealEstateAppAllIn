@@ -4,10 +4,10 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 
 const contactSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Enter a valid email"),
+  name: z.string().min(1, "יש להזין שם"),
+  email: z.string().email("יש להזין אימייל תקין"),
   phone: z.string().optional(),
-  message: z.string().min(1, "Message is required"),
+  message: z.string().min(1, "יש להזין הודעה"),
   propertyId: z.string().optional(),
 });
 

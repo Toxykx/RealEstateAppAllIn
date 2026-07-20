@@ -26,9 +26,9 @@ export default async function ManagerAgentsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Agents & Managers</h1>
+        <h1 className="text-2xl font-bold">סוכנים ומנהלים</h1>
         <Link href="/manager/agents/new" className={buttonVariants()}>
-          <Plus className="h-4 w-4" /> New agent
+          <Plus className="h-4 w-4" /> סוכן חדש
         </Link>
       </div>
 
@@ -37,12 +37,12 @@ export default async function ManagerAgentsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Clients</TableHead>
-                <TableHead>Properties</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>שם</TableHead>
+                <TableHead>אימייל</TableHead>
+                <TableHead>תפקיד</TableHead>
+                <TableHead>לקוחות</TableHead>
+                <TableHead>נכסים</TableHead>
+                <TableHead>סטטוס</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -55,13 +55,15 @@ export default async function ManagerAgentsPage() {
                   </TableCell>
                   <TableCell>{agent.email}</TableCell>
                   <TableCell>
-                    <Badge variant={agent.role === "MANAGER" ? "default" : "outline"}>{agent.role}</Badge>
+                    <Badge variant={agent.role === "MANAGER" ? "default" : "outline"}>
+                      {agent.role === "MANAGER" ? "מנהל" : "סוכן"}
+                    </Badge>
                   </TableCell>
                   <TableCell>{agent._count.managedClients}</TableCell>
                   <TableCell>{agent._count.agentProperties}</TableCell>
                   <TableCell>
                     <Badge variant={agent.isActive ? "secondary" : "outline"}>
-                      {agent.isActive ? "Active" : "Inactive"}
+                      {agent.isActive ? "פעיל" : "לא פעיל"}
                     </Badge>
                   </TableCell>
                 </TableRow>

@@ -35,7 +35,7 @@ export default async function ClientDetailPage({
     <div className="space-y-6">
       <div>
         <Link href="/agent/clients" className="text-sm text-muted-foreground hover:underline">
-          &larr; Back to clients
+          &rarr; חזרה ללקוחות
         </Link>
         <h1 className="mt-1 text-2xl font-bold">{client.name}</h1>
         <p className="text-muted-foreground">{client.email}</p>
@@ -44,39 +44,39 @@ export default async function ClientDetailPage({
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle className="text-lg">Client info</CardTitle>
+            <CardTitle className="text-lg">פרטי הלקוח</CardTitle>
           </CardHeader>
           <CardContent>
             <form action={boundUpdate} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Full name</Label>
+                <Label htmlFor="name">שם מלא</Label>
                 <Input id="name" name="name" defaultValue={client.name} required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">טלפון</Label>
                 <Input id="phone" name="phone" defaultValue={client.phone ?? ""} />
               </div>
               <div className="flex items-center gap-2">
                 <Checkbox id="isActive" name="isActive" defaultChecked={client.isActive} />
-                <Label htmlFor="isActive">Account active</Label>
+                <Label htmlFor="isActive">חשבון פעיל</Label>
               </div>
-              <Button type="submit">Save changes</Button>
+              <Button type="submit">שמירת שינויים</Button>
             </form>
           </CardContent>
         </Card>
 
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-lg">Properties ({client.ownedProperties.length})</CardTitle>
+            <CardTitle className="text-lg">נכסים ({client.ownedProperties.length})</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {client.ownedProperties.length === 0 && (
               <p className="text-sm text-muted-foreground">
-                No properties assigned yet.{" "}
+                עדיין לא הוקצו נכסים.{" "}
                 <Link href="/agent/properties/new" className="text-primary hover:underline">
-                  Create one
+                  צרו נכס חדש
                 </Link>{" "}
-                and assign it to this client.
+                והקצו אותו ללקוח זה.
               </p>
             )}
             {client.ownedProperties.map((property) => (

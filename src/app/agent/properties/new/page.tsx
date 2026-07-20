@@ -4,10 +4,10 @@ import { NewPropertyForm } from "./property-form";
 export default function NewPropertyPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <h1 className="text-2xl font-bold">New property</h1>
+      <h1 className="text-2xl font-bold">נכס חדש</h1>
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Property details</CardTitle>
+          <CardTitle className="text-lg">פרטי הנכס</CardTitle>
         </CardHeader>
         <CardContent>
           <NewPropertyForm />

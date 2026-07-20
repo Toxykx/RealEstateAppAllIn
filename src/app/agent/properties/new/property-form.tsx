@@ -22,36 +22,36 @@ export function NewPropertyForm() {
     <form action={formAction} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="title">Title</Label>
-          <Input id="title" name="title" placeholder="e.g. Herzl 15" required />
+          <Label htmlFor="title">כותרת</Label>
+          <Input id="title" name="title" placeholder="לדוגמה: הרצל 15" required />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="city">City</Label>
+          <Label htmlFor="city">עיר</Label>
           <Input id="city" name="city" required />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="addressLine">Address</Label>
+        <Label htmlFor="addressLine">כתובת</Label>
         <Input id="addressLine" name="addressLine" required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description">תיאור</Label>
         <Textarea id="description" name="description" rows={4} required />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor="price">Price</Label>
+          <Label htmlFor="price">מחיר</Label>
           <Input id="price" name="price" type="number" min={0} required />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="currency">Currency</Label>
+          <Label htmlFor="currency">מטבע</Label>
           <Input id="currency" name="currency" defaultValue="ILS" required />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="propertyType">Type</Label>
+          <Label htmlFor="propertyType">סוג נכס</Label>
           <Select
             name="propertyType"
             defaultValue="APARTMENT"
@@ -73,22 +73,22 @@ export function NewPropertyForm() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor="bedrooms">Bedrooms</Label>
+          <Label htmlFor="bedrooms">חדרי שינה</Label>
           <Input id="bedrooms" name="bedrooms" type="number" min={0} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="bathrooms">Bathrooms</Label>
+          <Label htmlFor="bathrooms">חדרי רחצה</Label>
           <Input id="bathrooms" name="bathrooms" type="number" min={0} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="areaSqm">Area (m²)</Label>
+          <Label htmlFor="areaSqm">שטח (מ״ר)</Label>
           <Input id="areaSqm" name="areaSqm" type="number" min={0} />
         </div>
       </div>
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       <Button type="submit" disabled={isPending}>
-        {isPending ? "Creating..." : "Create property"}
+        {isPending ? "יוצר..." : "יצירת נכס"}
       </Button>
     </form>
   );

@@ -40,7 +40,7 @@ export default async function PropertyDetailPage({
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {gallery.length === 0 ? (
                   <div className="col-span-full flex aspect-video items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                    No images yet
+                    אין תמונות עדיין
                   </div>
                 ) : (
                   gallery.map((image, i) => (
@@ -58,7 +58,7 @@ export default async function PropertyDetailPage({
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Details</CardTitle>
+                  <CardTitle className="text-lg">פרטים</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-2xl font-semibold text-primary">
@@ -70,12 +70,12 @@ export default async function PropertyDetailPage({
                     </Badge>
                     {property.bedrooms != null && (
                       <span className="flex items-center gap-1">
-                        <BedDouble className="h-4 w-4" /> {property.bedrooms} bedrooms
+                        <BedDouble className="h-4 w-4" /> {property.bedrooms} חדרי שינה
                       </span>
                     )}
                     {property.bathrooms != null && (
                       <span className="flex items-center gap-1">
-                        <Bath className="h-4 w-4" /> {property.bathrooms} bathrooms
+                        <Bath className="h-4 w-4" /> {property.bathrooms} חדרי רחצה
                       </span>
                     )}
                     {property.areaSqm != null && (
@@ -94,7 +94,7 @@ export default async function PropertyDetailPage({
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Listing agent</CardTitle>
+                  <CardTitle className="text-lg">סוכן הנכס</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-1 text-sm">
                   <p className="font-medium">{property.agent.name}</p>
@@ -108,7 +108,7 @@ export default async function PropertyDetailPage({
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Interested in this property?</CardTitle>
+                  <CardTitle className="text-lg">מעוניינים בנכס הזה?</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ContactForm propertyId={property.id} />

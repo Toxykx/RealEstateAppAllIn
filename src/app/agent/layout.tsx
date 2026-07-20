@@ -3,9 +3,9 @@ import { requireUserOrRedirect } from "@/lib/authz";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 
 const navItems = [
-  { href: "/agent", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
-  { href: "/agent/clients", label: "Clients", icon: <Users className="h-4 w-4" /> },
-  { href: "/agent/properties", label: "Properties", icon: <Building className="h-4 w-4" /> },
+  { href: "/agent", label: "לוח בקרה", icon: <LayoutDashboard className="h-4 w-4" /> },
+  { href: "/agent/clients", label: "לקוחות", icon: <Users className="h-4 w-4" /> },
+  { href: "/agent/properties", label: "נכסים", icon: <Building className="h-4 w-4" /> },
 ];
 
 export default async function AgentLayout({ children }: { children: React.ReactNode }) {
@@ -15,7 +15,7 @@ export default async function AgentLayout({ children }: { children: React.ReactN
     <DashboardShell
       navItems={navItems}
       userName={user.name ?? ""}
-      roleLabel={user.role === "MANAGER" ? "Manager" : "Agent"}
+      roleLabel={user.role === "MANAGER" ? "מנהל" : "סוכן"}
     >
       {children}
     </DashboardShell>

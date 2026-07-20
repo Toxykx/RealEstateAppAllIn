@@ -17,21 +17,21 @@ export default async function HomePage() {
         <section className="border-b bg-gradient-to-b from-primary/5 to-background">
           <div className="mx-auto max-w-6xl px-4 py-16 text-center sm:px-6 sm:py-24">
             <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
-              Find your next home, or sell with confidence
+              מוצאים את הבית הבא, או מוכרים בביטחון
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-muted-foreground sm:text-lg">
-              Horizon Realty connects buyers and sellers with dedicated agents who guide every
-              step of the deal — from first listing to signed contract.
+              אופק נכסים מחברת בין קונים ומוכרים לסוכנים מסורים שמלווים כל שלב בעסקה — מהצגת
+              הנכס ועד לחתימה על החוזה.
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
               <Link href="/properties" className={buttonVariants({ size: "lg" })}>
-                <Search className="mr-1 h-4 w-4" /> Browse properties
+                <Search className="me-1 h-4 w-4" /> חיפוש נכסים
               </Link>
               <Link
                 href="/contact"
                 className={buttonVariants({ size: "lg", variant: "outline" })}
               >
-                Talk to an agent
+                דברו עם סוכן
               </Link>
             </div>
           </div>
@@ -39,14 +39,14 @@ export default async function HomePage() {
 
         <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-xl font-semibold sm:text-2xl">Featured properties</h2>
+            <h2 className="text-xl font-semibold sm:text-2xl">נכסים מומלצים</h2>
             <Link href="/properties" className="text-sm font-medium text-primary hover:underline">
-              View all
+              לכל הנכסים
             </Link>
           </div>
           {featured.length === 0 ? (
             <p className="text-muted-foreground">
-              No properties are published yet — check back soon.
+              עדיין אין נכסים מפורסמים — בקרו שוב בקרוב.
             </p>
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

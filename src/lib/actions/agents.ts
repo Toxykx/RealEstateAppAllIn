@@ -8,10 +8,10 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
 
 const createAgentSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Enter a valid email"),
+  name: z.string().min(1, "יש להזין שם"),
+  email: z.string().email("יש להזין אימייל תקין"),
   phone: z.string().optional(),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים"),
   role: z.enum(["AGENT", "MANAGER"]),
 });
 
@@ -26,11 +26,11 @@ export async function createAgent(_prevState: { error?: string } | undefined, fo
     role: formData.get("role"),
   });
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+    return { error: parsed.error.issues[0]?.message ?? "קלט לא תקין" };
   }
 
   const existing = await prisma.user.findUnique({ where: { email: parsed.data.email } });
-  if (existing) return { error: "A user with this email already exists" };
+  if (existing) return { error: "כבר קיים משתמש עם אימייל זה" };
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 10);
   const agent = await prisma.user.create({

@@ -28,10 +28,10 @@ export function DashboardShell({
 
   return (
     <div className="flex min-h-screen">
-      <aside className="hidden w-64 shrink-0 flex-col border-r bg-card sm:flex">
+      <aside className="hidden w-64 shrink-0 flex-col border-e bg-card sm:flex">
         <div className="flex h-16 items-center gap-2 border-b px-6 font-semibold">
           <Building2 className="h-5 w-5 text-primary" />
-          Horizon Realty
+          אופק נכסים
         </div>
         <nav className="flex-1 space-y-1 p-3">
           {navItems.map((item) => {
@@ -60,7 +60,7 @@ export function DashboardShell({
           </div>
           <form action={signOutAction}>
             <Button type="submit" variant="ghost" size="sm" className="w-full justify-start">
-              <LogOut className="h-4 w-4" /> Sign out
+              <LogOut className="h-4 w-4" /> התנתקות
             </Button>
           </form>
         </div>
@@ -69,7 +69,7 @@ export function DashboardShell({
       <div className="flex flex-1 flex-col">
         <header className="flex h-16 items-center justify-between border-b bg-card px-4 sm:hidden">
           <span className="flex items-center gap-2 font-semibold">
-            <Building2 className="h-5 w-5 text-primary" /> Horizon Realty
+            <Building2 className="h-5 w-5 text-primary" /> אופק נכסים
           </span>
           <form action={signOutAction}>
             <Button type="submit" variant="ghost" size="icon-sm">

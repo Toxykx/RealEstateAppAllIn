@@ -8,10 +8,10 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
 
 const createClientSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Enter a valid email"),
+  name: z.string().min(1, "יש להזין שם"),
+  email: z.string().email("יש להזין אימייל תקין"),
   phone: z.string().optional(),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים"),
 });
 
 export async function createClient(_prevState: { error?: string } | undefined, formData: FormData) {
@@ -24,12 +24,12 @@ export async function createClient(_prevState: { error?: string } | undefined, f
     password: formData.get("password"),
   });
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+    return { error: parsed.error.issues[0]?.message ?? "קלט לא תקין" };
   }
 
   const existing = await prisma.user.findUnique({ where: { email: parsed.data.email } });
   if (existing) {
-    return { error: "A user with this email already exists" };
+    return { error: "כבר קיים משתמש עם אימייל זה" };
   }
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 10);
@@ -49,7 +49,7 @@ export async function createClient(_prevState: { error?: string } | undefined, f
 }
 
 const updateClientSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, "יש להזין שם"),
   phone: z.string().optional(),
   isActive: z.boolean(),
 });

@@ -1,6 +1,6 @@
 export function formatPrice(price: number | string, currency = "ILS") {
   const value = typeof price === "string" ? Number(price) : price;
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("he-IL", {
     style: "currency",
     currency,
     maximumFractionDigits: 0,
@@ -8,29 +8,29 @@ export function formatPrice(price: number | string, currency = "ILS") {
 }
 
 export const PROPERTY_TYPE_LABELS: Record<string, string> = {
-  APARTMENT: "Apartment",
-  HOUSE: "House",
-  VILLA: "Villa",
-  LAND: "Land",
-  COMMERCIAL: "Commercial",
+  APARTMENT: "דירה",
+  HOUSE: "בית פרטי",
+  VILLA: "וילה",
+  LAND: "מגרש",
+  COMMERCIAL: "מסחרי",
 };
 
 export const LISTING_STATUS_LABELS: Record<string, string> = {
-  DRAFT: "Draft",
-  AVAILABLE: "Available",
-  IN_PROGRESS: "In Progress",
-  SOLD: "Sold",
-  RENTED: "Rented",
-  ARCHIVED: "Archived",
+  DRAFT: "טיוטה",
+  AVAILABLE: "זמין",
+  IN_PROGRESS: "בתהליך",
+  SOLD: "נמכר",
+  RENTED: "מושכר",
+  ARCHIVED: "בארכיון",
 };
 
 export const DEAL_STAGE_STEPS = [
-  { value: "CONTRACT_SIGNED", label: "Contract signed" },
-  { value: "PHOTOS_COMPLETED", label: "Photos completed" },
-  { value: "PUBLISHED", label: "Published" },
-  { value: "VISITS", label: "Visits" },
-  { value: "NEGOTIATION", label: "Negotiation" },
-  { value: "SOLD", label: "Sold" },
+  { value: "CONTRACT_SIGNED", label: "חוזה נחתם" },
+  { value: "PHOTOS_COMPLETED", label: "צילומים הושלמו" },
+  { value: "PUBLISHED", label: "פורסם" },
+  { value: "VISITS", label: "ביקורים" },
+  { value: "NEGOTIATION", label: "משא ומתן" },
+  { value: "SOLD", label: "נמכר" },
 ] as const;
 
 export function dealStageIndex(stage: string) {
@@ -38,7 +38,7 @@ export function dealStageIndex(stage: string) {
 }
 
 export function formatDateTime(date: Date | string) {
-  return new Intl.DateTimeFormat("en-GB", {
+  return new Intl.DateTimeFormat("he-IL", {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(date));

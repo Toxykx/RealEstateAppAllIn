@@ -17,12 +17,12 @@ export default async function MyPropertiesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">My Properties</h1>
+      <h1 className="text-2xl font-bold">הנכסים שלי</h1>
 
       {properties.length === 0 && (
         <Card>
           <CardContent className="pt-6 text-sm text-muted-foreground">
-            No properties are assigned to you yet. Your agent will add one here once it&apos;s ready.
+            עדיין לא הוקצו לך נכסים. הסוכן שלך יוסיף נכס כאן ברגע שיהיה מוכן.
           </CardContent>
         </Card>
       )}
@@ -39,7 +39,7 @@ export default async function MyPropertiesPage() {
                     <Image src={cover} alt={property.title} fill className="object-cover" />
                   ) : (
                     <div className="flex h-full items-center justify-center text-muted-foreground">
-                      No image
+                      אין תמונה
                     </div>
                   )}
                 </div>
@@ -53,7 +53,7 @@ export default async function MyPropertiesPage() {
                     {formatPrice(property.price.toString(), property.currency)}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Current stage: {DEAL_STAGE_STEPS[stageIndex]?.label}
+                    שלב נוכחי: {DEAL_STAGE_STEPS[stageIndex]?.label}
                   </p>
                 </CardContent>
               </Card>

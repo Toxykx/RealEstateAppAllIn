@@ -5,21 +5,26 @@ const prisma = new PrismaClient();
 
 const DEMO_PASSWORD = "Passw0rd!";
 
-function slugify(title: string, city: string) {
-  return `${title}-${city}`
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+async function resetDemoData() {
+  await prisma.notification.deleteMany();
+  await prisma.favorite.deleteMany();
+  await prisma.contactMessage.deleteMany();
+  await prisma.visit.deleteMany();
+  await prisma.propertyDocument.deleteMany();
+  await prisma.propertyUpdate.deleteMany();
+  await prisma.propertyImage.deleteMany();
+  await prisma.property.deleteMany();
+  await prisma.user.deleteMany();
 }
 
 async function main() {
+  await resetDemoData();
+
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
 
-  const manager = await prisma.user.upsert({
-    where: { email: "manager@horizonrealty.demo" },
-    update: {},
-    create: {
-      name: "Dana Manager",
+  const manager = await prisma.user.create({
+    data: {
+      name: "דנה כהן",
       email: "manager@horizonrealty.demo",
       passwordHash,
       role: Role.MANAGER,
@@ -27,11 +32,9 @@ async function main() {
     },
   });
 
-  const agent1 = await prisma.user.upsert({
-    where: { email: "agent1@horizonrealty.demo" },
-    update: {},
-    create: {
-      name: "Yossi Agent",
+  const agent1 = await prisma.user.create({
+    data: {
+      name: "יוסי לוי",
       email: "agent1@horizonrealty.demo",
       passwordHash,
       role: Role.AGENT,
@@ -39,11 +42,9 @@ async function main() {
     },
   });
 
-  const agent2 = await prisma.user.upsert({
-    where: { email: "agent2@horizonrealty.demo" },
-    update: {},
-    create: {
-      name: "Noa Agent",
+  const agent2 = await prisma.user.create({
+    data: {
+      name: "נועה מזרחי",
       email: "agent2@horizonrealty.demo",
       passwordHash,
       role: Role.AGENT,
@@ -51,11 +52,9 @@ async function main() {
     },
   });
 
-  const client1 = await prisma.user.upsert({
-    where: { email: "client1@example.com" },
-    update: {},
-    create: {
-      name: "Avi Cohen",
+  const client1 = await prisma.user.create({
+    data: {
+      name: "אבי כהן",
       email: "client1@example.com",
       passwordHash,
       role: Role.CLIENT,
@@ -64,11 +63,9 @@ async function main() {
     },
   });
 
-  const client2 = await prisma.user.upsert({
-    where: { email: "client2@example.com" },
-    update: {},
-    create: {
-      name: "Michal Levi",
+  const client2 = await prisma.user.create({
+    data: {
+      name: "מיכל לוי",
       email: "client2@example.com",
       passwordHash,
       role: Role.CLIENT,
@@ -77,11 +74,9 @@ async function main() {
     },
   });
 
-  const client3 = await prisma.user.upsert({
-    where: { email: "client3@example.com" },
-    update: {},
-    create: {
-      name: "Tomer Bar",
+  const client3 = await prisma.user.create({
+    data: {
+      name: "תומר בר",
       email: "client3@example.com",
       passwordHash,
       role: Role.CLIENT,
@@ -92,10 +87,11 @@ async function main() {
 
   const propertySeeds = [
     {
-      title: "Herzl 15",
-      city: "Modi'in",
-      addressLine: "Herzl St 15",
-      description: "Bright 4-room apartment with a renovated kitchen and a large balcony overlooking the park.",
+      slug: "herzl-15-modiin",
+      title: "הרצל 15",
+      city: "מודיעין",
+      addressLine: "רחוב הרצל 15",
+      description: "דירת 4 חדרים מוארת עם מטבח משופץ ומרפסת גדולה הצופה לפארק.",
       price: 2450000,
       propertyType: PropertyType.APARTMENT,
       bedrooms: 4,
@@ -108,10 +104,11 @@ async function main() {
       cover: "https://images.unsplash.com/photo-1560184897-ae75f418493e?w=1200",
     },
     {
-      title: "Rothschild 42",
-      city: "Tel Aviv",
-      addressLine: "Rothschild Blvd 42",
-      description: "Boutique building 2-room unit, walking distance to the beach and Sarona Market.",
+      slug: "rothschild-42-tel-aviv",
+      title: "רוטשילד 42",
+      city: "תל אביב",
+      addressLine: "שדרות רוטשילד 42",
+      description: "יחידת 2 חדרים בבניין בוטיק, במרחק הליכה מהים ומשוק שרונה.",
       price: 3200000,
       propertyType: PropertyType.APARTMENT,
       bedrooms: 2,
@@ -124,10 +121,11 @@ async function main() {
       cover: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200",
     },
     {
-      title: "HaGefen 8",
-      city: "Zichron Ya'akov",
-      addressLine: "HaGefen St 8",
-      description: "Detached family house with a private garden and wine-country views.",
+      slug: "hagefen-8-zichron-yaakov",
+      title: "הגפן 8",
+      city: "זכרון יעקב",
+      addressLine: "רחוב הגפן 8",
+      description: "בית משפחתי צמוד קרקע עם גינה פרטית ונוף לכרמי היין.",
       price: 4100000,
       propertyType: PropertyType.HOUSE,
       bedrooms: 5,
@@ -140,10 +138,11 @@ async function main() {
       cover: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200",
     },
     {
-      title: "Ben Gurion 100",
-      city: "Haifa",
-      addressLine: "Ben Gurion Ave 100",
-      description: "Sea-view penthouse, fully furnished, ready for immediate occupancy.",
+      slug: "ben-gurion-100-haifa",
+      title: "בן גוריון 100",
+      city: "חיפה",
+      addressLine: "שדרות בן גוריון 100",
+      description: "פנטהאוז עם נוף לים, מרוהט לחלוטין ומוכן לכניסה מיידית.",
       price: 2800000,
       propertyType: PropertyType.APARTMENT,
       bedrooms: 3,
@@ -156,10 +155,11 @@ async function main() {
       cover: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200",
     },
     {
-      title: "HaNassi 3",
-      city: "Ra'anana",
-      addressLine: "HaNassi St 3",
-      description: "New-build villa with a pool, smart-home wiring, and a two-car garage.",
+      slug: "hanassi-3-raanana",
+      title: "הנשיא 3",
+      city: "רעננה",
+      addressLine: "רחוב הנשיא 3",
+      description: "וילה חדשה עם בריכה, חיווט בית חכם וחניה לשני רכבים.",
       price: 6500000,
       propertyType: PropertyType.VILLA,
       bedrooms: 6,
@@ -172,10 +172,11 @@ async function main() {
       cover: "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=1200",
     },
     {
-      title: "Even Gvirol 55",
-      city: "Tel Aviv",
-      addressLine: "Even Gvirol St 55",
-      description: "Ground-floor commercial space suitable for a boutique retail storefront.",
+      slug: "even-gvirol-55-tel-aviv",
+      title: "אבן גבירול 55",
+      city: "תל אביב",
+      addressLine: "רחוב אבן גבירול 55",
+      description: "שטח מסחרי בקומת קרקע, מתאים לחזית חנות בוטיק.",
       price: 5200000,
       propertyType: PropertyType.COMMERCIAL,
       bedrooms: null,
@@ -191,10 +192,8 @@ async function main() {
 
   const properties = [];
   for (const seed of propertySeeds) {
-    const property = await prisma.property.upsert({
-      where: { slug: slugify(seed.title, seed.city) },
-      update: {},
-      create: {
+    const property = await prisma.property.create({
+      data: {
         title: seed.title,
         city: seed.city,
         addressLine: seed.addressLine,
@@ -206,11 +205,11 @@ async function main() {
         areaSqm: seed.areaSqm,
         listingStatus: seed.listingStatus,
         dealStage: seed.dealStage,
-        slug: slugify(seed.title, seed.city),
+        slug: seed.slug,
         agentId: seed.agent.id,
         ownerClientId: seed.owner?.id ?? null,
         images: {
-          create: [{ url: seed.cover, storageKey: `seed/${slugify(seed.title, seed.city)}-cover.jpg`, isCover: true, sortOrder: 0 }],
+          create: [{ url: seed.cover, storageKey: `seed/${seed.slug}-cover.jpg`, isCover: true, sortOrder: 0 }],
         },
       },
     });
@@ -223,35 +222,35 @@ async function main() {
     data: [
       {
         propertyId: herzl.property.id,
-        message: "Contract signed with the seller. Kicking off photography this week.",
+        message: "החוזה נחתם מול המוכר. יוצאים לצילומים השבוע.",
         stageChangedTo: DealStage.CONTRACT_SIGNED,
         createdById: agent1.id,
         isInternal: false,
       },
       {
         propertyId: herzl.property.id,
-        message: "Photos are done and look great — moving to publish the listing.",
+        message: "הצילומים הושלמו ויצאו מצוין — עוברים לפרסום המודעה.",
         stageChangedTo: DealStage.PHOTOS_COMPLETED,
         createdById: agent1.id,
         isInternal: false,
       },
       {
         propertyId: herzl.property.id,
-        message: "Listing is live on the catalog. First inquiries coming in already.",
+        message: "המודעה פורסמה בקטלוג. כבר מתקבלות פניות ראשונות.",
         stageChangedTo: DealStage.PUBLISHED,
         createdById: agent1.id,
         isInternal: false,
       },
       {
         propertyId: herzl.property.id,
-        message: "Scheduled the first round of visits for this weekend.",
+        message: "נקבע סבב ביקורים ראשון לסוף השבוע.",
         stageChangedTo: DealStage.VISITS,
         createdById: agent1.id,
         isInternal: false,
       },
       {
         propertyId: herzl.property.id,
-        message: "Seller pushing back on the buyer's opening offer — will negotiate.",
+        message: "המוכר דוחה את ההצעה הראשונית של הקונה — נמשיך במשא ומתן.",
         createdById: agent1.id,
         isInternal: true,
       },
@@ -263,7 +262,7 @@ async function main() {
     data: [
       {
         propertyId: herzl.property.id,
-        name: "Signed Sale Contract.pdf",
+        name: "חוזה מכר חתום.pdf",
         fileUrl: "https://example-storage.local/seed/contract.pdf",
         storageKey: `seed/${herzl.property.id}/contract.pdf`,
         docType: "CONTRACT",
@@ -272,7 +271,7 @@ async function main() {
       },
       {
         propertyId: herzl.property.id,
-        name: "Seller ID Copy.pdf",
+        name: "צילום תעודה מזהה של המוכר.pdf",
         fileUrl: "https://example-storage.local/seed/seller-id.pdf",
         storageKey: `seed/${herzl.property.id}/seller-id.pdf`,
         docType: "ID",
@@ -289,7 +288,7 @@ async function main() {
         propertyId: herzl.property.id,
         scheduledAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
         status: "SCHEDULED",
-        visitorName: "Prospective buyer (walk-in)",
+        visitorName: "קונה פוטנציאלי (ביקור ספונטני)",
         visitorPhone: "+972-52-9990000",
         createdById: agent1.id,
       },
@@ -312,13 +311,13 @@ async function main() {
         userId: client1.id,
         propertyId: herzl.property.id,
         type: "STAGE_CHANGE",
-        message: "Herzl 15 moved to the Visits stage.",
+        message: "הנכס הרצל 15 עודכן לשלב ביקורים.",
       },
       {
         userId: client1.id,
         propertyId: herzl.property.id,
         type: "VISIT_SCHEDULED",
-        message: "A new visit was scheduled for Herzl 15.",
+        message: "נקבע ביקור חדש בנכס הרצל 15.",
       },
     ],
     skipDuplicates: true,
@@ -326,18 +325,18 @@ async function main() {
 
   await prisma.contactMessage.create({
     data: {
-      name: "Guest Inquirer",
+      name: "פונה אורח",
       email: "guest@example.com",
       phone: "+972-54-1112222",
-      message: "Hi, I'm interested in the villa on HaNassi St — is it still on the market?",
+      message: "שלום, אני מתעניין בווילה ברחוב הנשיא — האם היא עדיין למכירה?",
       propertyId: properties[4].property.id,
     },
   });
 
-  console.log("Seed complete. Demo login password for all users:", DEMO_PASSWORD);
-  console.log("Manager:", manager.email);
-  console.log("Agents:", agent1.email, agent2.email);
-  console.log("Clients:", client1.email, client2.email, client3.email);
+  console.log("הסידור הושלם. סיסמת התחברות לכל המשתמשים:", DEMO_PASSWORD);
+  console.log("מנהל:", manager.email);
+  console.log("סוכנים:", agent1.email, agent2.email);
+  console.log("לקוחות:", client1.email, client2.email, client3.email);
 }
 
 main()

@@ -37,6 +37,12 @@ import {
   formatDateTime,
 } from "@/lib/format";
 
+const DOC_TYPE_LABELS: Record<string, string> = {
+  CONTRACT: "חוזה",
+  ID: "תעודה מזהה",
+  OTHER: "אחר",
+};
+
 export default async function PropertyDetailPage({
   params,
 }: {
@@ -85,7 +91,7 @@ export default async function PropertyDetailPage({
     <div className="space-y-6">
       <div>
         <Link href="/agent/properties" className="text-sm text-muted-foreground hover:underline">
-          &larr; Back to properties
+          &rarr; חזרה לנכסים
         </Link>
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-bold">{property.title}</h1>
@@ -101,39 +107,39 @@ export default async function PropertyDetailPage({
         {/* Basic info */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-lg">Details</CardTitle>
+            <CardTitle className="text-lg">פרטים</CardTitle>
           </CardHeader>
           <CardContent>
             <form action={boundUpdateProperty} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Title</Label>
+                  <Label htmlFor="title">כותרת</Label>
                   <Input id="title" name="title" defaultValue={property.title} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
+                  <Label htmlFor="city">עיר</Label>
                   <Input id="city" name="city" defaultValue={property.city} required />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="addressLine">Address</Label>
+                <Label htmlFor="addressLine">כתובת</Label>
                 <Input id="addressLine" name="addressLine" defaultValue={property.addressLine} required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">תיאור</Label>
                 <Textarea id="description" name="description" rows={4} defaultValue={property.description} required />
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
-                  <Label htmlFor="price">Price</Label>
+                  <Label htmlFor="price">מחיר</Label>
                   <Input id="price" name="price" type="number" defaultValue={property.price.toString()} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="currency">Currency</Label>
+                  <Label htmlFor="currency">מטבע</Label>
                   <Input id="currency" name="currency" defaultValue={property.currency} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="propertyType">Type</Label>
+                  <Label htmlFor="propertyType">סוג נכס</Label>
                   <Select
                     name="propertyType"
                     defaultValue={property.propertyType}
@@ -154,19 +160,19 @@ export default async function PropertyDetailPage({
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
-                  <Label htmlFor="bedrooms">Bedrooms</Label>
+                  <Label htmlFor="bedrooms">חדרי שינה</Label>
                   <Input id="bedrooms" name="bedrooms" type="number" defaultValue={property.bedrooms ?? ""} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="bathrooms">Bathrooms</Label>
+                  <Label htmlFor="bathrooms">חדרי רחצה</Label>
                   <Input id="bathrooms" name="bathrooms" type="number" defaultValue={property.bathrooms ?? ""} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="areaSqm">Area (m²)</Label>
+                  <Label htmlFor="areaSqm">שטח (מ״ר)</Label>
                   <Input id="areaSqm" name="areaSqm" type="number" defaultValue={property.areaSqm ?? ""} />
                 </div>
               </div>
-              <Button type="submit">Save details</Button>
+              <Button type="submit">שמירת פרטים</Button>
             </form>
           </CardContent>
         </Card>
@@ -175,7 +181,7 @@ export default async function PropertyDetailPage({
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Listing status</CardTitle>
+              <CardTitle className="text-lg">סטטוס פרסום</CardTitle>
             </CardHeader>
             <CardContent>
               <form action={boundListingStatus} className="flex gap-2">
@@ -195,14 +201,14 @@ export default async function PropertyDetailPage({
                     ))}
                   </SelectContent>
                 </Select>
-                <Button type="submit">Save</Button>
+                <Button type="submit">שמירה</Button>
               </form>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Deal progress</CardTitle>
+              <CardTitle className="text-lg">התקדמות העסקה</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <ul className="space-y-1.5 text-sm">
@@ -230,27 +236,27 @@ export default async function PropertyDetailPage({
                     ))}
                   </SelectContent>
                 </Select>
-                <Button type="submit">Update</Button>
+                <Button type="submit">עדכון</Button>
               </form>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Assigned client (owner)</CardTitle>
+              <CardTitle className="text-lg">לקוח מוקצה (בעלים)</CardTitle>
             </CardHeader>
             <CardContent>
               <form action={boundAssign} className="flex gap-2">
                 <Select
                   name="clientId"
                   defaultValue={property.ownerClientId ?? "none"}
-                  items={[{ value: "none", label: "Unassigned" }, ...clients.map((c) => ({ value: c.id, label: c.name }))]}
+                  items={[{ value: "none", label: "לא מוקצה" }, ...clients.map((c) => ({ value: c.id, label: c.name }))]}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Unassigned" />
+                    <SelectValue placeholder="לא מוקצה" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Unassigned</SelectItem>
+                    <SelectItem value="none">לא מוקצה</SelectItem>
                     {clients.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.name}
@@ -258,7 +264,7 @@ export default async function PropertyDetailPage({
                     ))}
                   </SelectContent>
                 </Select>
-                <Button type="submit">Save</Button>
+                <Button type="submit">שמירה</Button>
               </form>
             </CardContent>
           </Card>
@@ -268,20 +274,20 @@ export default async function PropertyDetailPage({
       {/* Images */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Images</CardTitle>
+          <CardTitle className="text-lg">תמונות</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {property.images.map((image) => (
               <div key={image.id} className="group relative aspect-square overflow-hidden rounded-md bg-muted">
                 <Image src={image.url} alt="" fill className="object-cover" />
-                {image.isCover && <Badge className="absolute left-1 top-1">Cover</Badge>}
+                {image.isCover && <Badge className="absolute start-1 top-1">תמונת נושא</Badge>}
                 <form action={deleteImageAction.bind(null, property.id, image.id)}>
                   <Button
                     type="submit"
                     size="icon-sm"
                     variant="destructive"
-                    className="absolute right-1 top-1 opacity-0 transition-opacity group-hover:opacity-100"
+                    className="absolute end-1 top-1 opacity-0 transition-opacity group-hover:opacity-100"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
@@ -291,7 +297,7 @@ export default async function PropertyDetailPage({
           </div>
           <form action={boundUploadImage} encType="multipart/form-data" className="flex flex-wrap items-end gap-2">
             <Input type="file" name="file" accept="image/*" required className="max-w-xs" />
-            <Button type="submit">Upload image</Button>
+            <Button type="submit">העלאת תמונה</Button>
           </form>
         </CardContent>
       </Card>
@@ -299,7 +305,7 @@ export default async function PropertyDetailPage({
       {/* Documents */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Documents</CardTitle>
+          <CardTitle className="text-lg">מסמכים</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <ul className="space-y-2">
@@ -313,8 +319,8 @@ export default async function PropertyDetailPage({
                   ) : (
                     <span>{doc.name}</span>
                   )}
-                  <Badge variant="outline">{doc.docType}</Badge>
-                  {doc.visibleToClient && <Badge variant="secondary">Client-visible</Badge>}
+                  <Badge variant="outline">{DOC_TYPE_LABELS[doc.docType] ?? doc.docType}</Badge>
+                  {doc.visibleToClient && <Badge variant="secondary">גלוי ללקוח</Badge>}
                 </div>
                 <form action={deleteDocumentAction.bind(null, property.id, doc.id)}>
                   <Button type="submit" size="icon-sm" variant="ghost">
@@ -324,7 +330,7 @@ export default async function PropertyDetailPage({
               </li>
             ))}
             {property.documents.length === 0 && (
-              <p className="text-sm text-muted-foreground">No documents uploaded yet.</p>
+              <p className="text-sm text-muted-foreground">עדיין לא הועלו מסמכים.</p>
             )}
           </ul>
           <form
@@ -337,25 +343,25 @@ export default async function PropertyDetailPage({
               name="docType"
               defaultValue="OTHER"
               items={[
-                { value: "CONTRACT", label: "Contract" },
-                { value: "ID", label: "ID" },
-                { value: "OTHER", label: "Other" },
+                { value: "CONTRACT", label: "חוזה" },
+                { value: "ID", label: "תעודה מזהה" },
+                { value: "OTHER", label: "אחר" },
               ]}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="CONTRACT">Contract</SelectItem>
-                <SelectItem value="ID">ID</SelectItem>
-                <SelectItem value="OTHER">Other</SelectItem>
+                <SelectItem value="CONTRACT">חוזה</SelectItem>
+                <SelectItem value="ID">תעודה מזהה</SelectItem>
+                <SelectItem value="OTHER">אחר</SelectItem>
               </SelectContent>
             </Select>
             <label className="flex items-center gap-2 text-sm">
               <Checkbox name="visibleToClient" />
-              Visible to client
+              גלוי ללקוח
             </label>
-            <Button type="submit">Upload document</Button>
+            <Button type="submit">העלאת מסמך</Button>
           </form>
         </CardContent>
       </Card>
@@ -363,17 +369,17 @@ export default async function PropertyDetailPage({
       {/* Timeline */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Timeline</CardTitle>
+          <CardTitle className="text-lg">ציר זמן</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <form action={boundPostUpdate} className="space-y-2">
-            <Textarea name="message" placeholder="Write an update for this property..." rows={2} required />
+            <Textarea name="message" placeholder="כתבו עדכון עבור נכס זה..." rows={2} required />
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Checkbox name="isInternal" />
-                Internal note (not shown to client)
+                הערה פנימית (לא מוצגת ללקוח)
               </label>
-              <Button type="submit">Post update</Button>
+              <Button type="submit">פרסום עדכון</Button>
             </div>
           </form>
           <ul className="space-y-3">
@@ -383,13 +389,13 @@ export default async function PropertyDetailPage({
                   <span>
                     {update.createdBy.name} · {formatDateTime(update.createdAt)}
                   </span>
-                  {update.isInternal && <Badge variant="outline">Internal</Badge>}
+                  {update.isInternal && <Badge variant="outline">פנימי</Badge>}
                 </div>
                 <p>{update.message}</p>
               </li>
             ))}
             {property.updates.length === 0 && (
-              <p className="text-sm text-muted-foreground">No updates posted yet.</p>
+              <p className="text-sm text-muted-foreground">עדיין לא פורסמו עדכונים.</p>
             )}
           </ul>
         </CardContent>
@@ -398,16 +404,16 @@ export default async function PropertyDetailPage({
       {/* Visits */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Visits</CardTitle>
+          <CardTitle className="text-lg">ביקורים</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <form action={boundScheduleVisit} className="grid gap-2 sm:grid-cols-2">
             <Input type="datetime-local" name="scheduledAt" required />
-            <Input name="visitorName" placeholder="Visitor name (optional)" />
-            <Input name="visitorPhone" placeholder="Visitor phone (optional)" />
-            <Input name="notes" placeholder="Notes (optional)" />
+            <Input name="visitorName" placeholder="שם המבקר (לא חובה)" />
+            <Input name="visitorPhone" placeholder="טלפון המבקר (לא חובה)" />
+            <Input name="notes" placeholder="הערות (לא חובה)" />
             <Button type="submit" className="sm:col-span-2">
-              Schedule visit
+              קביעת ביקור
             </Button>
           </form>
           <ul className="space-y-2">
@@ -422,28 +428,28 @@ export default async function PropertyDetailPage({
                     name="status"
                     defaultValue={visit.status}
                     items={[
-                      { value: "SCHEDULED", label: "Scheduled" },
-                      { value: "COMPLETED", label: "Completed" },
-                      { value: "CANCELLED", label: "Cancelled" },
+                      { value: "SCHEDULED", label: "מתוכנן" },
+                      { value: "COMPLETED", label: "הושלם" },
+                      { value: "CANCELLED", label: "בוטל" },
                     ]}
                   >
                     <SelectTrigger size="sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="SCHEDULED">Scheduled</SelectItem>
-                      <SelectItem value="COMPLETED">Completed</SelectItem>
-                      <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                      <SelectItem value="SCHEDULED">מתוכנן</SelectItem>
+                      <SelectItem value="COMPLETED">הושלם</SelectItem>
+                      <SelectItem value="CANCELLED">בוטל</SelectItem>
                     </SelectContent>
                   </Select>
                   <Button type="submit" size="sm">
-                    Update
+                    עדכון
                   </Button>
                 </form>
               </li>
             ))}
             {property.visits.length === 0 && (
-              <p className="text-sm text-muted-foreground">No visits scheduled yet.</p>
+              <p className="text-sm text-muted-foreground">עדיין לא נקבעו ביקורים.</p>
             )}
           </ul>
         </CardContent>

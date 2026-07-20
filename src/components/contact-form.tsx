@@ -15,7 +15,7 @@ export function ContactForm({ propertyId }: { propertyId?: string }) {
   if (state.success) {
     return (
       <p className="rounded-md bg-secondary p-4 text-sm">
-        Thanks for reaching out — an agent from Horizon Realty will be in touch shortly.
+        תודה על פנייתך — סוכן מטעם אופק נכסים יצור איתך קשר בהקדם.
       </p>
     );
   }
@@ -25,25 +25,25 @@ export function ContactForm({ propertyId }: { propertyId?: string }) {
       {propertyId && <input type="hidden" name="propertyId" value={propertyId} />}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="name">Name</Label>
+          <Label htmlFor="name">שם מלא</Label>
           <Input id="name" name="name" required />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">אימייל</Label>
           <Input id="email" name="email" type="email" required />
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="phone">Phone (optional)</Label>
+        <Label htmlFor="phone">טלפון (לא חובה)</Label>
         <Input id="phone" name="phone" type="tel" />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="message">Message</Label>
+        <Label htmlFor="message">הודעה</Label>
         <Textarea id="message" name="message" rows={4} required />
       </div>
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
       <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
-        {isPending ? "Sending..." : "Send message"}
+        {isPending ? "שולח..." : "שליחת הודעה"}
       </Button>
     </form>
   );

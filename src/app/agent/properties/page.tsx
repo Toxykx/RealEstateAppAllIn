@@ -27,9 +27,9 @@ export default async function AgentPropertiesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Properties</h1>
+        <h1 className="text-2xl font-bold">נכסים</h1>
         <Link href="/agent/properties/new" className={buttonVariants()}>
-          <Plus className="h-4 w-4" /> New property
+          <Plus className="h-4 w-4" /> נכס חדש
         </Link>
       </div>
 
@@ -38,13 +38,13 @@ export default async function AgentPropertiesPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>City</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Owner</TableHead>
-                {user.role === "MANAGER" && <TableHead>Agent</TableHead>}
-                <TableHead>Status</TableHead>
+                <TableHead>כותרת</TableHead>
+                <TableHead>עיר</TableHead>
+                <TableHead>סוג</TableHead>
+                <TableHead>מחיר</TableHead>
+                <TableHead>בעלים</TableHead>
+                {user.role === "MANAGER" && <TableHead>סוכן</TableHead>}
+                <TableHead>סטטוס</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -71,7 +71,7 @@ export default async function AgentPropertiesPage() {
               {properties.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-muted-foreground">
-                    No properties yet.
+                    עדיין אין נכסים.
                   </TableCell>
                 </TableRow>
               )}

@@ -8,11 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/format";
 
 const TYPE_LABELS: Record<string, string> = {
-  STAGE_CHANGE: "Stage update",
-  NEW_UPDATE: "New update",
-  NEW_DOCUMENT: "New document",
-  VISIT_SCHEDULED: "Visit scheduled",
-  PROPERTY_ASSIGNED: "Property assigned",
+  STAGE_CHANGE: "עדכון שלב",
+  NEW_UPDATE: "עדכון חדש",
+  NEW_DOCUMENT: "מסמך חדש",
+  VISIT_SCHEDULED: "ביקור נקבע",
+  PROPERTY_ASSIGNED: "נכס הוקצה",
 };
 
 export default async function UpdatesPage() {
@@ -29,11 +29,11 @@ export default async function UpdatesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Updates</h1>
+        <h1 className="text-2xl font-bold">עדכונים</h1>
         {hasUnread && (
           <form action={markAllNotificationsRead}>
             <Button type="submit" variant="outline" size="sm">
-              Mark all as read
+              סימון הכל כנקרא
             </Button>
           </form>
         )}
@@ -41,7 +41,7 @@ export default async function UpdatesPage() {
 
       <div className="space-y-3">
         {notifications.length === 0 && (
-          <p className="text-sm text-muted-foreground">No updates yet.</p>
+          <p className="text-sm text-muted-foreground">עדיין אין עדכונים.</p>
         )}
         {notifications.map((notification) => (
           <Link
@@ -53,7 +53,7 @@ export default async function UpdatesPage() {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <Badge variant="outline">{TYPE_LABELS[notification.type] ?? notification.type}</Badge>
-                    {!notification.isRead && <Badge>New</Badge>}
+                    {!notification.isRead && <Badge>חדש</Badge>}
                   </div>
                   <p className="text-sm">{notification.message}</p>
                   <p className="text-xs text-muted-foreground">{formatDateTime(notification.createdAt)}</p>

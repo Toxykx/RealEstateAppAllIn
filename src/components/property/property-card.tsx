@@ -42,10 +42,10 @@ export function PropertyCard({
             />
           ) : (
             <div className="flex h-full items-center justify-center text-muted-foreground">
-              No image
+              אין תמונה
             </div>
           )}
-          <Badge className="absolute left-3 top-3" variant="secondary">
+          <Badge className="absolute start-3 top-3" variant="secondary">
             {LISTING_STATUS_LABELS[property.listingStatus] ?? property.listingStatus}
           </Badge>
           {actions}

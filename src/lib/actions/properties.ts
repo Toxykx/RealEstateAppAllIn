@@ -44,7 +44,7 @@ export async function createProperty(_prevState: { error?: string } | undefined,
     areaSqm: formData.get("areaSqm") || null,
   });
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+    return { error: parsed.error.issues[0]?.message ?? "קלט לא תקין" };
   }
 
   const property = await prisma.property.create({
@@ -96,7 +96,7 @@ export async function assignPropertyToClient(propertyId: string, formData: FormD
         userId: clientId,
         propertyId,
         type: "PROPERTY_ASSIGNED",
-        message: `${property?.title} has been assigned to you.`,
+        message: `הנכס ${property?.title} הוקצה לך.`,
       },
     });
   }
@@ -134,7 +134,7 @@ export async function changeDealStage(propertyId: string, formData: FormData) {
   await prisma.propertyUpdate.create({
     data: {
       propertyId,
-      message: `Stage moved to "${stepLabel}".`,
+      message: `השלב עודכן ל-"${stepLabel}".`,
       stageChangedTo: dealStage,
       createdById: user.id,
       isInternal: false,
@@ -147,7 +147,7 @@ export async function changeDealStage(propertyId: string, formData: FormData) {
         userId: property.ownerClientId,
         propertyId,
         type: "STAGE_CHANGE",
-        message: `${property.title} moved to "${stepLabel}".`,
+        message: `הנכס ${property.title} עודכן ל-"${stepLabel}".`,
       },
     });
   }
@@ -186,7 +186,7 @@ export async function postPropertyUpdate(propertyId: string, formData: FormData)
           userId: property.ownerClientId,
           propertyId,
           type: "NEW_UPDATE",
-          message: `New update on ${property.title}.`,
+          message: `עדכון חדש על הנכס ${property.title}.`,
         },
       });
     }
@@ -233,7 +233,7 @@ export async function scheduleVisit(propertyId: string, formData: FormData) {
         userId: property.ownerClientId,
         propertyId,
         type: "VISIT_SCHEDULED",
-        message: `A visit was scheduled for ${property.title}.`,
+        message: `נקבע ביקור עבור הנכס ${property.title}.`,
       },
     });
   }

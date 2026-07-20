@@ -76,7 +76,7 @@ export async function uploadDocumentAction(propertyId: string, formData: FormDat
           userId: property.ownerClientId,
           propertyId,
           type: "NEW_DOCUMENT",
-          message: `A new document was added to ${property.title}.`,
+          message: `נוסף מסמך חדש לנכס ${property.title}.`,
         },
       });
     }

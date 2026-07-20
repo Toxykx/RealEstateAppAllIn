@@ -9,10 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { signOutAction } from "@/lib/actions/auth";
 
 const navItems = [
-  { href: "/client", label: "My Properties", icon: Home },
-  { href: "/client/search", label: "Search", icon: Search },
-  { href: "/client/updates", label: "Updates", icon: Bell },
-  { href: "/client/profile", label: "Profile", icon: User },
+  { href: "/client", label: "הנכסים שלי", shortLabel: "נכסים", icon: Home },
+  { href: "/client/search", label: "חיפוש נכסים", shortLabel: "חיפוש", icon: Search },
+  { href: "/client/updates", label: "עדכונים", shortLabel: "עדכונים", icon: Bell },
+  { href: "/client/profile", label: "פרופיל", shortLabel: "פרופיל", icon: User },
 ];
 
 export function ClientShell({
@@ -28,7 +28,7 @@ export function ClientShell({
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur">
         <span className="flex items-center gap-2 font-semibold">
-          <Building2 className="h-5 w-5 text-primary" /> Horizon Realty
+          <Building2 className="h-5 w-5 text-primary" /> אופק נכסים
         </span>
         <nav className="hidden items-center gap-1 sm:flex">
           {navItems.map((item) => {
@@ -46,7 +46,7 @@ export function ClientShell({
                 <Icon className="h-4 w-4" />
                 {item.label}
                 {item.href === "/client/updates" && unreadCount > 0 && (
-                  <Badge className="ml-1 h-5 min-w-5 justify-center px-1">{unreadCount}</Badge>
+                  <Badge className="ms-1 h-5 min-w-5 justify-center px-1">{unreadCount}</Badge>
                 )}
               </Link>
             );
@@ -75,9 +75,9 @@ export function ClientShell({
               )}
             >
               <Icon className="h-5 w-5" />
-              {item.label.replace("My ", "")}
+              {item.shortLabel}
               {item.href === "/client/updates" && unreadCount > 0 && (
-                <Badge className="absolute right-4 top-1 h-4 min-w-4 justify-center px-1 text-[10px]">
+                <Badge className="absolute end-4 top-1 h-4 min-w-4 justify-center px-1 text-[10px]">
                   {unreadCount}
                 </Badge>
               )}

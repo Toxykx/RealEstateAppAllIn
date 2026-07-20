@@ -12,27 +12,27 @@ export function NewClientForm() {
   return (
     <form action={formAction} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="name">Full name</Label>
+        <Label htmlFor="name">שם מלא</Label>
         <Input id="name" name="name" required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">אימייל</Label>
         <Input id="email" name="email" type="email" required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="phone">Phone (optional)</Label>
+        <Label htmlFor="phone">טלפון (לא חובה)</Label>
         <Input id="phone" name="phone" type="tel" />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">Temporary password</Label>
+        <Label htmlFor="password">סיסמה זמנית</Label>
         <Input id="password" name="password" type="text" required minLength={6} />
         <p className="text-xs text-muted-foreground">
-          Share this with the client directly so they can sign in.
+          שתפו זאת עם הלקוח ישירות כדי שיוכל להתחבר.
         </p>
       </div>
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       <Button type="submit" disabled={isPending}>
-        {isPending ? "Creating..." : "Create client"}
+        {isPending ? "יוצר..." : "יצירת לקוח"}
       </Button>
     </form>
   );

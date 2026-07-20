@@ -13,15 +13,15 @@ export default async function ManagerDashboardPage() {
   ]);
 
   const stats = [
-    { label: "Agents", value: agentCount },
-    { label: "Clients", value: clientCount },
-    { label: "Properties", value: propertyCount },
-    { label: "New inquiries", value: newInquiries },
+    { label: "סוכנים", value: agentCount },
+    { label: "לקוחות", value: clientCount },
+    { label: "נכסים", value: propertyCount },
+    { label: "פניות חדשות", value: newInquiries },
   ];
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Welcome back, {user.name?.split(" ")[0]}</h1>
+      <h1 className="text-2xl font-bold">ברוכים השבים, {user.name?.split(" ")[0]}</h1>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <Card key={stat.label}>

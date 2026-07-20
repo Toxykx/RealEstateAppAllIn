@@ -29,14 +29,14 @@ export default async function AgentDashboardPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">
-        Welcome back, {user.name?.split(" ")[0]}
+        ברוכים השבים, {user.name?.split(" ")[0]}
       </h1>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              {user.role === "MANAGER" ? "Total properties" : "My properties"}
+              {user.role === "MANAGER" ? "סה״כ נכסים" : "הנכסים שלי"}
             </CardTitle>
           </CardHeader>
           <CardContent className="text-3xl font-bold">{propertyCount}</CardContent>
@@ -44,7 +44,7 @@ export default async function AgentDashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              {user.role === "MANAGER" ? "Total clients" : "My clients"}
+              {user.role === "MANAGER" ? "סה״כ לקוחות" : "הלקוחות שלי"}
             </CardTitle>
           </CardHeader>
           <CardContent className="text-3xl font-bold">{clientCount}</CardContent>
@@ -54,11 +54,11 @@ export default async function AgentDashboardPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Recent updates</CardTitle>
+            <CardTitle className="text-lg">עדכונים אחרונים</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {recentUpdates.length === 0 && (
-              <p className="text-sm text-muted-foreground">No updates posted yet.</p>
+              <p className="text-sm text-muted-foreground">עדיין לא פורסמו עדכונים.</p>
             )}
             {recentUpdates.map((update) => (
               <Link
@@ -76,11 +76,11 @@ export default async function AgentDashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Upcoming visits</CardTitle>
+            <CardTitle className="text-lg">ביקורים קרובים</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {upcomingVisits.length === 0 && (
-              <p className="text-sm text-muted-foreground">No visits scheduled.</p>
+              <p className="text-sm text-muted-foreground">אין ביקורים מתוכננים.</p>
             )}
             {upcomingVisits.map((visit) => (
               <Link

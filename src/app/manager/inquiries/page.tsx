@@ -14,6 +14,12 @@ import {
 } from "@/components/ui/select";
 import { formatDateTime } from "@/lib/format";
 
+const CONTACT_STATUS_LABELS: Record<string, string> = {
+  NEW: "חדש",
+  CONTACTED: "נוצר קשר",
+  CLOSED: "סגור",
+};
+
 export default async function InquiriesPage() {
   await requireUser(["MANAGER"]);
 
@@ -24,7 +30,7 @@ export default async function InquiriesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Guest inquiries</h1>
+      <h1 className="text-2xl font-bold">פניות ממבקרים</h1>
       <div className="space-y-3">
         {inquiries.map((inquiry) => (
           <Card key={inquiry.id}>
@@ -33,7 +39,7 @@ export default async function InquiriesPage() {
                 <div className="flex items-center gap-2">
                   <p className="font-medium">{inquiry.name}</p>
                   <Badge variant={inquiry.status === "NEW" ? "default" : "secondary"}>
-                    {inquiry.status}
+                    {CONTACT_STATUS_LABELS[inquiry.status] ?? inquiry.status}
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">
@@ -44,7 +50,7 @@ export default async function InquiriesPage() {
                     href={`/agent/properties/${inquiry.property.id}`}
                     className="text-sm text-primary hover:underline"
                   >
-                    Re: {inquiry.property.title}
+                    בנוגע ל: {inquiry.property.title}
                   </Link>
                 )}
                 <p className="text-sm">{inquiry.message}</p>
@@ -55,29 +61,29 @@ export default async function InquiriesPage() {
                   name="status"
                   defaultValue={inquiry.status}
                   items={[
-                    { value: "NEW", label: "New" },
-                    { value: "CONTACTED", label: "Contacted" },
-                    { value: "CLOSED", label: "Closed" },
+                    { value: "NEW", label: "חדש" },
+                    { value: "CONTACTED", label: "נוצר קשר" },
+                    { value: "CLOSED", label: "סגור" },
                   ]}
                 >
                   <SelectTrigger size="sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="NEW">New</SelectItem>
-                    <SelectItem value="CONTACTED">Contacted</SelectItem>
-                    <SelectItem value="CLOSED">Closed</SelectItem>
+                    <SelectItem value="NEW">חדש</SelectItem>
+                    <SelectItem value="CONTACTED">נוצר קשר</SelectItem>
+                    <SelectItem value="CLOSED">סגור</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button type="submit" size="sm">
-                  Save
+                  שמירה
                 </Button>
               </form>
             </CardContent>
           </Card>
         ))}
         {inquiries.length === 0 && (
-          <p className="text-sm text-muted-foreground">No inquiries yet.</p>
+          <p className="text-sm text-muted-foreground">עדיין אין פניות.</p>
         )}
       </div>
     </div>

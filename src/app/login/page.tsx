@@ -34,19 +34,19 @@ export default async function LoginPage({
     <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-xl">Sign in</CardTitle>
+          <CardTitle className="text-xl">התחברות</CardTitle>
           <CardDescription>
-            Use the email and password your agent provided.
+            השתמשו באימייל ובסיסמה שקיבלתם מהסוכן שלכם.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form action={loginAction} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">אימייל</Label>
               <Input id="email" name="email" type="email" required autoComplete="email" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">סיסמה</Label>
               <Input
                 id="password"
                 name="password"
@@ -57,17 +57,17 @@ export default async function LoginPage({
             </div>
             {error && (
               <p className="text-sm text-destructive">
-                Invalid email or password. Please try again.
+                אימייל או סיסמה שגויים. נסו שוב.
               </p>
             )}
             <Button type="submit" className="w-full">
-              Sign in
+              התחברות
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            Just browsing?{" "}
+            רק מסתכלים?{" "}
             <Link href="/properties" className="underline underline-offset-2">
-              View the property catalog
+              צפו בקטלוג הנכסים
             </Link>
           </p>
         </CardContent>
