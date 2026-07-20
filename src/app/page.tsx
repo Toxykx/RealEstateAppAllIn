@@ -14,22 +14,26 @@ export default async function HomePage() {
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
       <main className="flex-1">
-        <section className="border-b bg-gradient-to-b from-primary/5 to-background">
-          <div className="mx-auto max-w-6xl px-4 py-16 text-center sm:px-6 sm:py-24">
-            <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
-              מוצאים את הבית הבא, או מוכרים בביטחון
-            </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-muted-foreground sm:text-lg">
-              אופק נכסים מחברת בין קונים ומוכרים למתווכים מסורים שמלווים כל שלב בעסקה — מהצגת
-              הנכס ועד לחתימה על החוזה.
+        <section className="border-b border-border bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/[0.06] via-background to-background">
+          <div className="mx-auto max-w-6xl px-4 py-20 text-center sm:px-6 sm:py-32">
+            <p className="text-xs font-medium tracking-[0.35em] text-primary">
+              נדל״ן יוקרתי · ליווי אישי מלא
             </p>
-            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <Link href="/properties" className={buttonVariants({ size: "lg" })}>
+            <h1 className="mx-auto mt-5 max-w-3xl font-serif text-4xl leading-tight tracking-tight text-foreground sm:text-6xl">
+              מוצאים את הבית הבא, או מוכרים בביטחון מלא
+            </h1>
+            <div className="mx-auto mt-6 h-px w-16 bg-primary/50" />
+            <p className="mx-auto mt-6 max-w-2xl text-muted-foreground sm:text-lg">
+              ALL IN Real Estate מחברת בין קונים ומוכרים למתווכים מובחרים שמלווים כל שלב
+              בעסקה — מהצגת הנכס ועד לחתימה על החוזה.
+            </p>
+            <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
+              <Link href="/properties" className={buttonVariants({ size: "lg", className: "tracking-wide" })}>
                 <Search className="me-1 h-4 w-4" /> חיפוש נכסים
               </Link>
               <Link
                 href="/contact"
-                className={buttonVariants({ size: "lg", variant: "outline" })}
+                className={buttonVariants({ size: "lg", variant: "outline", className: "tracking-wide" })}
               >
                 דברו עם מתווך
               </Link>
@@ -37,10 +41,10 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-xl font-semibold sm:text-2xl">נכסים מומלצים</h2>
-            <Link href="/properties" className="text-sm font-medium text-primary hover:underline">
+        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+          <div className="mb-8 flex items-end justify-between border-b border-border pb-4">
+            <h2 className="font-serif text-2xl text-foreground sm:text-3xl">נכסים מומלצים</h2>
+            <Link href="/properties" className="text-sm font-medium tracking-wide text-primary hover:underline">
               לכל הנכסים
             </Link>
           </div>

@@ -24,7 +24,7 @@ export function ContactForm({ propertyId }: { propertyId?: string }) {
   if (state.success) {
     return (
       <p className="rounded-md bg-secondary p-4 text-sm">
-        תודה על פנייתך — מתווך מטעם אופק נכסים יצור איתך קשר בהקדם.
+        תודה על פנייתך — מתווך מטעם ALL IN Real Estate יצור איתך קשר בהקדם.
       </p>
     );
   }

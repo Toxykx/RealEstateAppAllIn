@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Rubik } from "next/font/google";
+import { Rubik, Frank_Ruhl_Libre } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -8,9 +8,15 @@ const rubik = Rubik({
   subsets: ["latin", "hebrew"],
 });
 
+const frankRuhlLibre = Frank_Ruhl_Libre({
+  variable: "--font-serif",
+  subsets: ["latin", "hebrew"],
+  weight: ["500", "700"],
+});
+
 export const metadata: Metadata = {
-  title: "אופק נכסים",
-  description: "מחברים בין מתווכים ולקוחות בכל שלב בעסקת נדל״ן.",
+  title: "ALL IN Real Estate",
+  description: "בית תיווך יוקרתי — נדל״ן אקסקלוסיבי, ליווי אישי מהצגה ועד חתימה.",
 };
 
 export default function RootLayout({
@@ -19,7 +25,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl" className={`${rubik.variable} h-full antialiased`}>
+    <html
+      lang="he"
+      dir="rtl"
+      className={`${rubik.variable} ${frankRuhlLibre.variable} h-full antialiased`}
+    >
       <body className="min-h-full flex flex-col">
         {children}
         <Toaster />

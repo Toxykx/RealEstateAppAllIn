@@ -5,10 +5,10 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
 import { getSignedDocumentUrl } from "@/lib/storage";
 import { WhatsAppButton } from "@/components/property/whatsapp-button";
+import { DealProgress } from "@/components/property/deal-progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  DEAL_STAGE_STEPS,
   LISTING_STATUS_LABELS,
   dealStageIndex,
   formatDateTime,
@@ -96,7 +96,7 @@ export default async function ClientPropertyDetailPage({
             <CardTitle className="text-lg">פרטים</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-2xl font-semibold text-primary">
+            <p className="font-heading text-2xl text-primary">
               {formatPrice(property.price.toString(), property.currency)}
             </p>
             <p className="whitespace-pre-line text-sm leading-relaxed">{property.description}</p>
@@ -126,16 +126,7 @@ export default async function ClientPropertyDetailPage({
           <CardTitle className="text-lg">התקדמות</CardTitle>
         </CardHeader>
         <CardContent>
-          <ul className="space-y-1.5 text-sm">
-            {DEAL_STAGE_STEPS.map((step, i) => (
-              <li key={step.value} className="flex items-center gap-2">
-                <span>{i < currentStageIndex ? "✔" : i === currentStageIndex ? "🟡" : "⬜"}</span>
-                <span className={i === currentStageIndex ? "font-medium" : "text-muted-foreground"}>
-                  {step.label}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <DealProgress currentStageIndex={currentStageIndex} />
         </CardContent>
       </Card>
 

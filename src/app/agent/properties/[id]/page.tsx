@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { ActionForm } from "@/components/action-form";
 import { CreatedToast } from "@/components/created-toast";
+import { DealProgress } from "@/components/property/deal-progress";
 import { prisma } from "@/lib/prisma";
 import { requireUser, agentScope } from "@/lib/authz";
 import { getSignedDocumentUrl } from "@/lib/storage";
@@ -217,18 +218,7 @@ export default async function PropertyDetailPage({
               <CardTitle className="text-lg">התקדמות העסקה</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <ul className="space-y-1.5 text-sm">
-                {DEAL_STAGE_STEPS.map((step, i) => (
-                  <li key={step.value} className="flex items-center gap-2">
-                    <span>
-                      {i < currentStageIndex ? "✔" : i === currentStageIndex ? "🟡" : "⬜"}
-                    </span>
-                    <span className={i === currentStageIndex ? "font-medium" : "text-muted-foreground"}>
-                      {step.label}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              <DealProgress currentStageIndex={currentStageIndex} />
               <ActionForm action={boundDealStage} className="flex gap-2">
                 <Select name="dealStage" defaultValue={property.dealStage} items={[...DEAL_STAGE_STEPS]}>
                   <SelectTrigger className="w-full">
