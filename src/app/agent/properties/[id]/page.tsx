@@ -6,6 +6,8 @@ import { Trash2 } from "lucide-react";
 import { ActionForm } from "@/components/action-form";
 import { CreatedToast } from "@/components/created-toast";
 import { DealProgress } from "@/components/property/deal-progress";
+import { KeyManagementCard } from "@/components/manager/key-management-card";
+import { ActivityLogList } from "@/components/manager/activity-log-list";
 import { prisma } from "@/lib/prisma";
 import { requireUser, agentScope } from "@/lib/authz";
 import { getSignedDocumentUrl } from "@/lib/storage";
@@ -17,8 +19,11 @@ import {
   postPropertyUpdate,
   scheduleVisit,
   updateVisitStatus,
+  reassignPropertyAgent,
 } from "@/lib/actions/properties";
 import { uploadImageAction, deleteImageAction, uploadDocumentAction, deleteDocumentAction } from "@/lib/actions/uploads";
+import { takeKey, returnKey, setKeyStatus } from "@/lib/actions/keys";
+import { logManualActivity } from "@/lib/actions/activity";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,6 +68,11 @@ export default async function PropertyDetailPage({
       updates: { orderBy: { createdAt: "desc" }, include: { createdBy: { select: { name: true } } } },
       visits: { orderBy: { scheduledAt: "asc" } },
       ownerClient: true,
+      keyHolder: { select: { name: true } },
+      activityLogs: {
+        orderBy: { createdAt: "desc" },
+        include: { agent: { select: { name: true } } },
+      },
     },
   });
   if (!property) notFound();
@@ -72,6 +82,14 @@ export default async function PropertyDetailPage({
     select: { id: true, name: true },
     orderBy: { name: "asc" },
   });
+
+  const agents = user.role === "MANAGER"
+    ? await prisma.user.findMany({
+        where: { role: "AGENT" },
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
+      })
+    : [];
 
   const documentsWithUrls = await Promise.all(
     property.documents.map(async (doc) => ({
@@ -88,6 +106,10 @@ export default async function PropertyDetailPage({
   const boundScheduleVisit = scheduleVisit.bind(null, property.id);
   const boundUploadImage = uploadImageAction.bind(null, property.id);
   const boundUploadDoc = uploadDocumentAction.bind(null, property.id);
+  const boundTakeKey = takeKey.bind(null, property.id);
+  const boundReturnKey = returnKey.bind(null, property.id);
+  const boundSetKeyStatus = setKeyStatus.bind(null, property.id);
+  const boundReassignAgent = reassignPropertyAgent.bind(null, property.id);
 
   const currentStageIndex = dealStageIndex(property.dealStage);
 
@@ -262,6 +284,53 @@ export default async function PropertyDetailPage({
                 </Select>
                 <Button type="submit">שמירה</Button>
               </ActionForm>
+            </CardContent>
+          </Card>
+
+          {user.role === "MANAGER" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">מתווך אחראי</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ActionForm action={boundReassignAgent} className="flex gap-2">
+                  <Select
+                    name="agentId"
+                    defaultValue={property.agentId}
+                    items={agents.map((a) => ({ value: a.id, label: a.name }))}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {agents.map((a) => (
+                        <SelectItem key={a.id} value={a.id}>
+                          {a.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button type="submit">שמירה</Button>
+                </ActionForm>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">ניהול מפתח</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <KeyManagementCard
+                keyStatus={property.keyStatus}
+                keyHolderName={property.keyHolder?.name ?? null}
+                keyLastTakenAt={property.keyLastTakenAt}
+                keyLastReturnedAt={property.keyLastReturnedAt}
+                isManager={user.role === "MANAGER"}
+                onTakeKey={boundTakeKey}
+                onReturnKey={boundReturnKey}
+                onSetStatus={boundSetKeyStatus}
+              />
             </CardContent>
           </Card>
         </div>
@@ -448,6 +517,47 @@ export default async function PropertyDetailPage({
               <p className="text-sm text-muted-foreground">עדיין לא נקבעו ביקורים.</p>
             )}
           </ul>
+        </CardContent>
+      </Card>
+
+      {/* Manual call/meeting logging */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">תיעוד שיחה או פגישה</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ActionForm action={logManualActivity} className="grid gap-2 sm:grid-cols-[160px_1fr_auto]">
+            <input type="hidden" name="propertyId" value={property.id} />
+            {property.ownerClientId && <input type="hidden" name="clientId" value={property.ownerClientId} />}
+            <Select
+              name="activityType"
+              defaultValue="CALL_LOGGED"
+              items={[
+                { value: "CALL_LOGGED", label: "שיחת טלפון" },
+                { value: "MEETING_LOGGED", label: "פגישה" },
+              ]}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="CALL_LOGGED">שיחת טלפון</SelectItem>
+                <SelectItem value="MEETING_LOGGED">פגישה</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input name="note" placeholder="פרטי השיחה או הפגישה" required />
+            <Button type="submit">תיעוד</Button>
+          </ActionForm>
+        </CardContent>
+      </Card>
+
+      {/* Activity history */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">היסטוריית פעילות</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ActivityLogList logs={property.activityLogs} />
         </CardContent>
       </Card>
     </div>

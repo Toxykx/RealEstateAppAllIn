@@ -5,7 +5,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
-import { DEAL_STAGE_STEPS } from "@/lib/format";
+import { DEAL_STAGE_STEPS, LISTING_STATUS_LABELS } from "@/lib/format";
+import { logActivity } from "@/lib/activity-log";
 import type { ActionResult } from "@/components/action-form";
 import type { DealStage } from "@prisma/client";
 
@@ -56,12 +57,19 @@ export async function createProperty(_prevState: { error?: string } | undefined,
     },
   });
 
+  await logActivity({
+    activityType: "PROPERTY_CREATED",
+    description: `הנכס "${property.title}" נוצר על ידי ${user.name}.`,
+    propertyId: property.id,
+    agentId: user.id,
+  });
+
   revalidatePath("/agent/properties");
   redirect(`/agent/properties/${property.id}?created=1`);
 }
 
 export async function updateProperty(propertyId: string, formData: FormData): Promise<ActionResult> {
-  await requireUser(["AGENT", "MANAGER"]);
+  const user = await requireUser(["AGENT", "MANAGER"]);
 
   const parsed = propertySchema.safeParse({
     title: formData.get("title"),
@@ -79,29 +87,57 @@ export async function updateProperty(propertyId: string, formData: FormData): Pr
     return { success: false, message: parsed.error.issues[0]?.message ?? "אירעה שגיאה בשמירת הפרטים" };
   }
 
+  const before = await prisma.property.findUnique({ where: { id: propertyId } });
   await prisma.property.update({ where: { id: propertyId }, data: parsed.data });
+
+  await logActivity({
+    activityType: "PROPERTY_EDITED",
+    description: `פרטי הנכס "${parsed.data.title}" נערכו על ידי ${user.name}.`,
+    propertyId,
+    agentId: user.id,
+  });
+
+  if (before && Number(before.price) !== parsed.data.price) {
+    await logActivity({
+      activityType: "PRICE_CHANGED",
+      description: `המחיר עודכן מ-${before.price.toString()} ל-${parsed.data.price} ${parsed.data.currency}.`,
+      propertyId,
+      agentId: user.id,
+    });
+  }
+
   revalidatePath(`/agent/properties/${propertyId}`);
   return { success: true, message: "פרטי הנכס נשמרו בהצלחה" };
 }
 
 export async function assignPropertyToClient(propertyId: string, formData: FormData): Promise<ActionResult> {
-  await requireUser(["AGENT", "MANAGER"]);
+  const user = await requireUser(["AGENT", "MANAGER"]);
   const clientId = formData.get("clientId") as string;
+  const clientIdValue = clientId && clientId !== "none" ? clientId : null;
 
   await prisma.property.update({
     where: { id: propertyId },
-    data: { ownerClientId: clientId || null },
+    data: { ownerClientId: clientIdValue },
   });
 
-  if (clientId) {
-    const property = await prisma.property.findUnique({ where: { id: propertyId } });
+  const property = await prisma.property.findUnique({ where: { id: propertyId } });
+
+  if (clientIdValue) {
     await prisma.notification.create({
       data: {
-        userId: clientId,
+        userId: clientIdValue,
         propertyId,
         type: "PROPERTY_ASSIGNED",
         message: `הנכס ${property?.title} הוקצה לך.`,
       },
+    });
+
+    await logActivity({
+      activityType: "CLIENT_ASSIGNED",
+      description: `הנכס "${property?.title}" הוקצה ללקוח על ידי ${user.name}.`,
+      propertyId,
+      agentId: user.id,
+      clientId: clientIdValue,
     });
   }
 
@@ -109,14 +145,52 @@ export async function assignPropertyToClient(propertyId: string, formData: FormD
   return { success: true, message: "הלקוח המוקצה עודכן בהצלחה" };
 }
 
+export async function reassignPropertyAgent(propertyId: string, formData: FormData): Promise<ActionResult> {
+  const user = await requireUser(["MANAGER"]);
+  const agentId = formData.get("agentId") as string;
+  if (!agentId) return { success: false, message: "יש לבחור מתווך" };
+
+  const [property, newAgent] = await Promise.all([
+    prisma.property.update({ where: { id: propertyId }, data: { agentId } }),
+    prisma.user.findUnique({ where: { id: agentId } }),
+  ]);
+
+  await logActivity({
+    activityType: "AGENT_ASSIGNED",
+    description: `המתווך האחראי על "${property.title}" הוחלף ל-${newAgent?.name} על ידי ${user.name}.`,
+    propertyId,
+    agentId: user.id,
+  });
+
+  revalidatePath(`/agent/properties/${propertyId}`);
+  return { success: true, message: "המתווך האחראי עודכן בהצלחה" };
+}
+
 export async function changeListingStatus(propertyId: string, formData: FormData): Promise<ActionResult> {
-  await requireUser(["AGENT", "MANAGER"]);
+  const user = await requireUser(["AGENT", "MANAGER"]);
   const listingStatus = formData.get("listingStatus") as string;
 
+  const before = await prisma.property.findUnique({ where: { id: propertyId } });
   await prisma.property.update({
     where: { id: propertyId },
     data: { listingStatus: listingStatus as never },
   });
+
+  await logActivity({
+    activityType: "STATUS_CHANGED",
+    description: `סטטוס הפרסום עודכן ל-"${LISTING_STATUS_LABELS[listingStatus] ?? listingStatus}" על ידי ${user.name}.`,
+    propertyId,
+    agentId: user.id,
+  });
+
+  if (listingStatus === "AVAILABLE" && before?.listingStatus !== "AVAILABLE") {
+    await logActivity({
+      activityType: "PROPERTY_PUBLISHED",
+      description: `הנכס פורסם בקטלוג על ידי ${user.name}.`,
+      propertyId,
+      agentId: user.id,
+    });
+  }
 
   revalidatePath(`/agent/properties/${propertyId}`);
   return { success: true, message: "סטטוס הפרסום עודכן בהצלחה" };
@@ -155,6 +229,22 @@ export async function changeDealStage(propertyId: string, formData: FormData): P
         type: "STAGE_CHANGE",
         message: `הנכס ${property.title} עודכן ל-"${stepLabel}".`,
       },
+    });
+  }
+
+  await logActivity({
+    activityType: "STAGE_CHANGED",
+    description: `שלב העסקה של "${property.title}" עודכן ל-"${stepLabel}" על ידי ${user.name}.`,
+    propertyId,
+    agentId: user.id,
+  });
+
+  if (dealStage === "SOLD") {
+    await logActivity({
+      activityType: "DEAL_CLOSED",
+      description: `העסקה על "${property.title}" נסגרה בהצלחה.`,
+      propertyId,
+      agentId: user.id,
     });
   }
 
@@ -200,6 +290,13 @@ export async function postPropertyUpdate(propertyId: string, formData: FormData)
       });
     }
   }
+
+  await logActivity({
+    activityType: "TIMELINE_UPDATE_ADDED",
+    description: `${user.name} פרסם/ה עדכון בציר הזמן.`,
+    propertyId,
+    agentId: user.id,
+  });
 
   revalidatePath(`/agent/properties/${propertyId}`);
   return { success: true, message: "העדכון פורסם בהצלחה" };
@@ -250,15 +347,34 @@ export async function scheduleVisit(propertyId: string, formData: FormData): Pro
     });
   }
 
+  await logActivity({
+    activityType: "VISIT_SCHEDULED",
+    description: `${user.name} קבע/ה ביקור עבור "${property?.title}".`,
+    propertyId,
+    agentId: user.id,
+    clientId: property?.ownerClientId ?? undefined,
+  });
+
   revalidatePath(`/agent/properties/${propertyId}`);
   return { success: true, message: "הביקור נקבע בהצלחה" };
 }
 
 export async function updateVisitStatus(propertyId: string, visitId: string, formData: FormData): Promise<ActionResult> {
-  await requireUser(["AGENT", "MANAGER"]);
+  const user = await requireUser(["AGENT", "MANAGER"]);
   const status = formData.get("status") as string;
 
-  await prisma.visit.update({ where: { id: visitId }, data: { status: status as never } });
+  const visit = await prisma.visit.update({ where: { id: visitId }, data: { status: status as never } });
+
+  if (status === "COMPLETED" || status === "CANCELLED") {
+    await logActivity({
+      activityType: status === "COMPLETED" ? "VISIT_COMPLETED" : "VISIT_CANCELLED",
+      description: status === "COMPLETED" ? `הביקור הושלם.` : `הביקור בוטל.`,
+      propertyId,
+      agentId: user.id,
+      clientId: visit.clientId ?? undefined,
+    });
+  }
+
   revalidatePath(`/agent/properties/${propertyId}`);
   return { success: true, message: "סטטוס הביקור עודכן בהצלחה" };
 }

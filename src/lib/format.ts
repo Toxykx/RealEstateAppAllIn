@@ -43,3 +43,17 @@ export function formatDateTime(date: Date | string) {
     timeStyle: "short",
   }).format(new Date(date));
 }
+
+export const KEY_STATUS_LABELS: Record<string, string> = {
+  IN_OFFICE: "נמצא במשרד",
+  WITH_AGENT: "אצל מתווך",
+  LOST: "אבד",
+  DUPLICATED: "שכפול מפתח",
+};
+
+export const DEAL_TYPE_LABELS: Record<string, string> = {
+  SALE: "למכירה",
+  RENT: "להשכרה",
+};
+
+export const WEEKDAY_LABELS = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"] as const;

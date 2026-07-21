@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/authz";
 import { getSignedDocumentUrl } from "@/lib/storage";
 import { WhatsAppButton } from "@/components/property/whatsapp-button";
 import { DealProgress } from "@/components/property/deal-progress";
+import { logActivity } from "@/lib/activity-log";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -46,6 +47,14 @@ export default async function ClientPropertyDetailPage({
     },
   });
   if (!property) notFound();
+
+  await logActivity({
+    activityType: "PROPERTY_VIEWED",
+    description: `הלקוח ${user.name} צפה בנכס.`,
+    propertyId: property.id,
+    agentId: property.agentId,
+    clientId: user.id,
+  }).catch(() => {});
 
   const documentsWithUrls = await Promise.all(
     property.documents.map(async (doc) => ({

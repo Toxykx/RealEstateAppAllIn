@@ -1,4 +1,4 @@
-import { PrismaClient, Role, PropertyType, ListingStatus, DealStage } from "@prisma/client";
+import { PrismaClient, Role, PropertyType, ListingStatus, DealStage, DealType } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 const DEMO_PASSWORD = "Passw0rd!";
 
 async function resetDemoData() {
+  await prisma.activityLog.deleteMany();
   await prisma.notification.deleteMany();
   await prisma.favorite.deleteMany();
   await prisma.contactMessage.deleteMany();
@@ -99,6 +100,7 @@ async function main() {
       areaSqm: 110,
       listingStatus: ListingStatus.AVAILABLE,
       dealStage: DealStage.VISITS,
+      dealType: DealType.SALE,
       agent: agent1,
       owner: client1,
       cover: "https://images.unsplash.com/photo-1560184897-ae75f418493e?w=1200",
@@ -116,6 +118,7 @@ async function main() {
       areaSqm: 62,
       listingStatus: ListingStatus.IN_PROGRESS,
       dealStage: DealStage.NEGOTIATION,
+      dealType: DealType.RENT,
       agent: agent1,
       owner: client2,
       cover: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200",
@@ -133,6 +136,7 @@ async function main() {
       areaSqm: 180,
       listingStatus: ListingStatus.AVAILABLE,
       dealStage: DealStage.PUBLISHED,
+      dealType: DealType.SALE,
       agent: agent2,
       owner: client3,
       cover: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200",
@@ -150,6 +154,7 @@ async function main() {
       areaSqm: 95,
       listingStatus: ListingStatus.SOLD,
       dealStage: DealStage.SOLD,
+      dealType: DealType.SALE,
       agent: agent2,
       owner: null,
       cover: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200",
@@ -167,6 +172,7 @@ async function main() {
       areaSqm: 260,
       listingStatus: ListingStatus.DRAFT,
       dealStage: DealStage.CONTRACT_SIGNED,
+      dealType: DealType.SALE,
       agent: agent1,
       owner: null,
       cover: "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=1200",
@@ -184,6 +190,7 @@ async function main() {
       areaSqm: 140,
       listingStatus: ListingStatus.AVAILABLE,
       dealStage: DealStage.PUBLISHED,
+      dealType: DealType.RENT,
       agent: agent2,
       owner: null,
       cover: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200",
@@ -205,6 +212,7 @@ async function main() {
         areaSqm: seed.areaSqm,
         listingStatus: seed.listingStatus,
         dealStage: seed.dealStage,
+        dealType: seed.dealType,
         slug: seed.slug,
         agentId: seed.agent.id,
         ownerClientId: seed.owner?.id ?? null,
@@ -321,6 +329,59 @@ async function main() {
       },
     ],
     skipDuplicates: true,
+  });
+
+  const rothschild = properties[1];
+  const hagefen = properties[2];
+  const benGurion = properties[3];
+  const hanassi = properties[4];
+  const evenGvirol = properties[5];
+
+  const daysAgo = (n: number) => new Date(Date.now() - n * 24 * 60 * 60 * 1000);
+
+  // Demo key-management scenario: rothschild's key has been with agent1 for 4 days (triggers the "key not returned" alert).
+  await prisma.property.update({
+    where: { id: rothschild.property.id },
+    data: {
+      keyStatus: "WITH_AGENT",
+      keyHolderId: agent1.id,
+      keyLastTakenAt: daysAgo(4),
+    },
+  });
+
+  await prisma.activityLog.createMany({
+    data: [
+      // הרצל 15 — full lifecycle history
+      { activityType: "PROPERTY_CREATED", description: "הנכס נוצר במערכת.", propertyId: herzl.property.id, agentId: agent1.id, createdAt: daysAgo(30) },
+      { activityType: "PROPERTY_PUBLISHED", description: "הנכס פורסם בקטלוג.", propertyId: herzl.property.id, agentId: agent1.id, createdAt: daysAgo(25) },
+      { activityType: "VISIT_SCHEDULED", description: "נקבע ביקור בנכס.", propertyId: herzl.property.id, agentId: agent1.id, clientId: client1.id, createdAt: daysAgo(6) },
+      { activityType: "MEETING_LOGGED", description: "פגישה עם הלקוח אבי כהן במשרד.", propertyId: herzl.property.id, agentId: agent1.id, clientId: client1.id, createdAt: daysAgo(3) },
+      { activityType: "CALL_LOGGED", description: "שיחת טלפון עדכון סטטוס עם הלקוח.", propertyId: herzl.property.id, agentId: agent1.id, clientId: client1.id, createdAt: daysAgo(1) },
+
+      // רוטשילד 42 — key checked out + price change
+      { activityType: "PROPERTY_CREATED", description: "הנכס נוצר במערכת.", propertyId: rothschild.property.id, agentId: agent1.id, createdAt: daysAgo(20) },
+      { activityType: "PRICE_CHANGED", description: "המחיר עודכן מ-3,400,000 ₪ ל-3,200,000 ₪.", propertyId: rothschild.property.id, agentId: agent1.id, createdAt: daysAgo(10) },
+      { activityType: "KEY_CHECKED_OUT", description: "יוסי לוי לקח את המפתח מהמשרד.", propertyId: rothschild.property.id, agentId: agent1.id, createdAt: daysAgo(4) },
+
+      // הגפן 8 — published, visit completed, a cancelled visit
+      { activityType: "PROPERTY_CREATED", description: "הנכס נוצר במערכת.", propertyId: hagefen.property.id, agentId: agent2.id, createdAt: daysAgo(18) },
+      { activityType: "PROPERTY_PUBLISHED", description: "הנכס פורסם בקטלוג.", propertyId: hagefen.property.id, agentId: agent2.id, createdAt: daysAgo(15) },
+      { activityType: "VISIT_COMPLETED", description: "ביקור עם קונה פוטנציאלי הושלם.", propertyId: hagefen.property.id, agentId: agent2.id, clientId: client3.id, createdAt: daysAgo(5) },
+      { activityType: "VISIT_CANCELLED", description: "ביקור בוטל על ידי הלקוח.", propertyId: hagefen.property.id, agentId: agent2.id, clientId: client3.id, createdAt: daysAgo(2) },
+      { activityType: "CALL_LOGGED", description: "שיחת טלפון עם לקוח מתעניין.", agentId: agent2.id, clientId: client3.id, createdAt: daysAgo(1) },
+
+      // בן גוריון 100 — deal fully closed
+      { activityType: "PROPERTY_CREATED", description: "הנכס נוצר במערכת.", propertyId: benGurion.property.id, agentId: agent2.id, createdAt: daysAgo(60) },
+      { activityType: "STAGE_CHANGED", description: "השלב עודכן ל-\"נמכר\".", propertyId: benGurion.property.id, agentId: agent2.id, createdAt: daysAgo(2) },
+      { activityType: "DEAL_CLOSED", description: "העסקה נסגרה בהצלחה.", propertyId: benGurion.property.id, agentId: agent2.id, createdAt: daysAgo(2) },
+
+      // הנשיא 3 — stale draft, no recent activity (triggers the "not updated" alert)
+      { activityType: "PROPERTY_CREATED", description: "הנכס נוצר במערכת.", propertyId: hanassi.property.id, agentId: agent1.id, createdAt: daysAgo(20) },
+
+      // אבן גבירול 55 — published, no assigned client (triggers the "no assigned client" alert)
+      { activityType: "PROPERTY_CREATED", description: "הנכס נוצר במערכת.", propertyId: evenGvirol.property.id, agentId: agent2.id, createdAt: daysAgo(9) },
+      { activityType: "PROPERTY_PUBLISHED", description: "הנכס פורסם בקטלוג.", propertyId: evenGvirol.property.id, agentId: agent2.id, createdAt: daysAgo(8) },
+    ],
   });
 
   await prisma.contactMessage.create({

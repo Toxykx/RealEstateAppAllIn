@@ -10,6 +10,7 @@ import {
   IMAGE_BUCKET,
   DOCUMENT_BUCKET,
 } from "@/lib/storage";
+import { logActivity } from "@/lib/activity-log";
 import type { ActionResult } from "@/components/action-form";
 
 export async function uploadImageAction(propertyId: string, formData: FormData): Promise<ActionResult> {
@@ -88,6 +89,13 @@ export async function uploadDocumentAction(propertyId: string, formData: FormDat
       });
     }
   }
+
+  await logActivity({
+    activityType: "DOCUMENT_UPLOADED",
+    description: `${user.name} העלה/תה מסמך: "${file.name}".`,
+    propertyId,
+    agentId: user.id,
+  });
 
   revalidatePath(`/agent/properties/${propertyId}`);
   return { success: true, message: "המסמך הועלה בהצלחה" };

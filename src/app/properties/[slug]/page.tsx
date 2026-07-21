@@ -8,6 +8,7 @@ import { WhatsAppButton } from "@/components/property/whatsapp-button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getPropertyBySlug } from "@/lib/properties";
+import { logActivity } from "@/lib/activity-log";
 import { formatPrice, LISTING_STATUS_LABELS, PROPERTY_TYPE_LABELS } from "@/lib/format";
 
 export default async function PropertyDetailPage({
@@ -20,6 +21,13 @@ export default async function PropertyDetailPage({
   if (!property || !["AVAILABLE", "IN_PROGRESS"].includes(property.listingStatus)) {
     notFound();
   }
+
+  await logActivity({
+    activityType: "PROPERTY_VIEWED",
+    description: "הנכס נצפה בקטלוג הציבורי.",
+    propertyId: property.id,
+    agentId: property.agentId,
+  }).catch(() => {});
 
   const gallery = property.images.length > 0 ? property.images : [];
 

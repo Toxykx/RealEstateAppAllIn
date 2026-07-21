@@ -74,6 +74,40 @@ enum NotificationType {
   PROPERTY_ASSIGNED
 }
 
+enum DealType {
+  SALE
+  RENT
+}
+
+enum KeyStatus {
+  IN_OFFICE
+  WITH_AGENT
+  LOST
+  DUPLICATED
+}
+
+enum ActivityType {
+  PROPERTY_CREATED
+  PROPERTY_EDITED
+  PRICE_CHANGED
+  PROPERTY_PUBLISHED
+  STATUS_CHANGED
+  STAGE_CHANGED
+  AGENT_ASSIGNED
+  CLIENT_ASSIGNED
+  VISIT_SCHEDULED
+  VISIT_COMPLETED
+  VISIT_CANCELLED
+  PROPERTY_VIEWED
+  TIMELINE_UPDATE_ADDED
+  DOCUMENT_UPLOADED
+  KEY_CHECKED_OUT
+  KEY_RETURNED
+  MEETING_LOGGED
+  CALL_LOGGED
+  DEAL_CLOSED
+}
+
 model User {
   id            String   @id @default(cuid())
   name          String
@@ -100,6 +134,9 @@ model User {
   favorites          Favorite[]
   assignedInquiries  ContactMessage[]
   notifications      Notification[]
+  keysHeld           Property[]         @relation("KeyHolder")
+  activityLogsAsAgent  ActivityLog[]    @relation("AgentActivity")
+  activityLogsAsClient ActivityLog[]    @relation("ClientActivity")
 
   @@index([role])
 }
@@ -122,6 +159,13 @@ model Property {
 
   listingStatus ListingStatus  @default(DRAFT)
   dealStage     DealStage      @default(CONTRACT_SIGNED)
+  dealType      DealType       @default(SALE)
+
+  keyStatus         KeyStatus @default(IN_OFFICE)
+  keyHolderId       String?
+  keyHolder         User?     @relation("KeyHolder", fields: [keyHolderId], references: [id], onDelete: SetNull)
+  keyLastTakenAt    DateTime?
+  keyLastReturnedAt DateTime?
 
   source        PropertySource @default(MANUAL)
   externalId    String?
@@ -139,6 +183,7 @@ model Property {
   favorites     Favorite[]
   contactMessages ContactMessage[]
   notifications Notification[]
+  activityLogs  ActivityLog[]
 
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -255,4 +300,27 @@ model Notification {
   createdAt  DateTime         @default(now())
 
   @@index([userId, isRead])
+}
+
+model ActivityLog {
+  id           String       @id @default(cuid())
+  activityType ActivityType
+  description  String
+
+  propertyId   String?
+  property     Property?    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  agentId      String?
+  agent        User?        @relation("AgentActivity", fields: [agentId], references: [id], onDelete: SetNull)
+
+  clientId     String?
+  client       User?        @relation("ClientActivity", fields: [clientId], references: [id], onDelete: SetNull)
+
+  metadata     Json?
+  createdAt    DateTime     @default(now())
+
+  @@index([propertyId])
+  @@index([agentId])
+  @@index([activityType])
+  @@index([createdAt])
 }
