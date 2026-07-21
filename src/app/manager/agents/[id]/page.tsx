@@ -62,6 +62,8 @@ export default async function AgentDetailPage({
     { label: "נכסים שנוספו", key: "propertiesAdded" },
     { label: "עדכוני ציר זמן", key: "timelineUpdates" },
     { label: "עסקאות שנסגרו", key: "closedDeals" },
+    { label: "מפתחות שהוחזרו", key: "keysReturned" },
+    { label: "מפתחות ממתינים", key: "keysOutstanding" },
   ];
 
   return (

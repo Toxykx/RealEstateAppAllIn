@@ -68,6 +68,7 @@ export default async function PropertyDetailPage({
       updates: { orderBy: { createdAt: "desc" }, include: { createdBy: { select: { name: true } } } },
       visits: { orderBy: { scheduledAt: "asc" } },
       ownerClient: true,
+      agent: { select: { name: true, phone: true, email: true } },
       keyHolder: { select: { name: true } },
       activityLogs: {
         orderBy: { createdAt: "desc" },
@@ -334,6 +335,39 @@ export default async function PropertyDetailPage({
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Agent + Client contact cards */}
+      <div className="grid gap-6 sm:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">כרטיס מתווך</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 text-sm">
+            <p className="font-medium">{property.agent.name}</p>
+            {property.agent.phone && <p className="text-muted-foreground">{property.agent.phone}</p>}
+            <p className="text-muted-foreground">{property.agent.email}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">כרטיס לקוח</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 text-sm">
+            {property.ownerClient ? (
+              <>
+                <p className="font-medium">{property.ownerClient.name}</p>
+                {property.ownerClient.phone && (
+                  <p className="text-muted-foreground">{property.ownerClient.phone}</p>
+                )}
+                <p className="text-muted-foreground">{property.ownerClient.email}</p>
+              </>
+            ) : (
+              <p className="text-muted-foreground">לא הוקצה לקוח לנכס זה עדיין.</p>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Images */}

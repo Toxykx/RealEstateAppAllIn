@@ -1,12 +1,18 @@
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Search, KeyRound } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
+import { getAgentPerformanceComparison } from "@/lib/stats";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { KEY_STATUS_LABELS, LISTING_STATUS_LABELS } from "@/lib/format";
+import { KEY_STATUS_LABELS, LISTING_STATUS_LABELS, formatDateTime } from "@/lib/format";
+
+function daysSince(date: Date) {
+  return Math.floor((Date.now() - date.getTime()) / (24 * 60 * 60 * 1000));
+}
 
 export default async function ManagerSearchPage({
   searchParams,
@@ -25,20 +31,36 @@ export default async function ManagerSearchPage({
             { addressLine: { contains: propertyQuery, mode: "insensitive" } },
           ],
         },
-        include: { agent: { select: { name: true } } },
+        include: {
+          agent: { select: { name: true } },
+          _count: { select: { documents: true, visits: true } },
+        },
         orderBy: { createdAt: "desc" },
         take: 20,
       })
     : [];
 
-  const agents = agentQuery
-    ? await prisma.user.findMany({
-        where: { role: { in: ["AGENT", "MANAGER"] }, name: { contains: agentQuery, mode: "insensitive" } },
-        include: { _count: { select: { agentProperties: true, managedClients: true } } },
-        orderBy: { name: "asc" },
-        take: 20,
-      })
-    : [];
+  const [agents, agentWeeklyPerformance] = agentQuery
+    ? await Promise.all([
+        prisma.user.findMany({
+          where: { role: { in: ["AGENT", "MANAGER"] }, name: { contains: agentQuery, mode: "insensitive" } },
+          include: {
+            _count: { select: { agentProperties: true, managedClients: true, keysHeld: true } },
+          },
+          orderBy: { name: "asc" },
+          take: 20,
+        }),
+        getAgentPerformanceComparison("week"),
+      ])
+    : [[], []];
+
+  const performanceByAgentId = new Map(agentWeeklyPerformance.map((row) => [row.agentId, row]));
+
+  const keysOutsideOffice = await prisma.property.findMany({
+    where: { keyStatus: { not: "IN_OFFICE" } },
+    include: { keyHolder: { select: { name: true } } },
+    orderBy: { keyLastTakenAt: "desc" },
+  });
 
   return (
     <div className="space-y-6">
@@ -73,6 +95,10 @@ export default async function ManagerSearchPage({
                       <span>מתווך: {property.agent.name}</span>
                       <span>·</span>
                       <span>מפתח: {KEY_STATUS_LABELS[property.keyStatus]}</span>
+                      <span>·</span>
+                      <span>{property._count.documents} מסמכים</span>
+                      <span>·</span>
+                      <span>{property._count.visits} ביקורים</span>
                     </div>
                   </Link>
                 </li>
@@ -109,8 +135,16 @@ export default async function ManagerSearchPage({
                     <div>
                       <p className="font-medium">{agent.name}</p>
                       <p className="text-muted-foreground">
-                        {agent._count.managedClients} לקוחות · {agent._count.agentProperties} נכסים
+                        {agent._count.managedClients} לקוחות · {agent._count.agentProperties} נכסים ·{" "}
+                        {agent._count.keysHeld} מפתחות אצלו
                       </p>
+                      {performanceByAgentId.has(agent.id) && (
+                        <p className="text-xs text-muted-foreground">
+                          השבוע: {performanceByAgentId.get(agent.id)?.visits} ביקורים ·{" "}
+                          {performanceByAgentId.get(agent.id)?.calls} שיחות ·{" "}
+                          {performanceByAgentId.get(agent.id)?.closedDeals} עסקאות
+                        </p>
+                      )}
                     </div>
                     <Badge variant={agent.role === "MANAGER" ? "default" : "outline"}>
                       {agent.role === "MANAGER" ? "מנהל" : "מתווך"}
@@ -128,6 +162,39 @@ export default async function ManagerSearchPage({
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <KeyRound className="h-4 w-4" /> מפתחות מחוץ למשרד ({keysOutsideOffice.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {keysOutsideOffice.length === 0 ? (
+            <EmptyState icon={KeyRound} message="כל המפתחות נמצאים במשרד." />
+          ) : (
+            <ul className="space-y-2">
+              {keysOutsideOffice.map((property) => (
+                <li key={property.id}>
+                  <Link
+                    href={`/agent/properties/${property.id}`}
+                    className="flex items-center justify-between rounded-md border p-3 text-sm hover:bg-muted/50"
+                  >
+                    <div>
+                      <p className="font-medium">{property.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {property.keyHolder ? `אצל: ${property.keyHolder.name}` : "—"}
+                        {property.keyLastTakenAt && ` · לפני ${daysSince(property.keyLastTakenAt)} ימים (${formatDateTime(property.keyLastTakenAt)})`}
+                      </p>
+                    </div>
+                    <Badge variant="secondary">{KEY_STATUS_LABELS[property.keyStatus]}</Badge>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

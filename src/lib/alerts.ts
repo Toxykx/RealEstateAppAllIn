@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { formatDateTime } from "@/lib/format";
 
 // Tunable thresholds — adjust here if the agency wants different alert sensitivity.
 const KEY_OVERDUE_DAYS = 3;
@@ -12,7 +13,8 @@ export type ManagerAlertType =
   | "NO_ACTIVITY"
   | "VISIT_CANCELLED"
   | "MISSING_IMAGES"
-  | "NO_CLIENT";
+  | "NO_CLIENT"
+  | "CLIENT_WAITING";
 
 export type ManagerAlert = {
   id: string;
@@ -90,6 +92,19 @@ export async function getManagerAlerts(): Promise<ManagerAlert[]> {
         createdAt: property.createdAt,
       });
     }
+  }
+
+  const waitingInquiries = await prisma.contactMessage.findMany({
+    where: { status: "NEW" },
+    orderBy: { createdAt: "desc" },
+  });
+  for (const inquiry of waitingInquiries) {
+    alerts.push({
+      id: `waiting-${inquiry.id}`,
+      type: "CLIENT_WAITING",
+      message: `${inquiry.name} ממתין/ה למענה מ-${formatDateTime(inquiry.createdAt)}.`,
+      createdAt: inquiry.createdAt,
+    });
   }
 
   const cancelledVisits = await prisma.activityLog.findMany({

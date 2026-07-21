@@ -1,13 +1,21 @@
 import Link from "next/link";
+import { startOfDay, endOfDay } from "date-fns";
+import { Plus, UserPlus, Building, Users } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser, agentScope } from "@/lib/authz";
+import { getAgentStats } from "@/lib/stats";
+import { ActivityLogList } from "@/components/manager/activity-log-list";
+import { QuickActions } from "@/components/quick-actions";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDateTime } from "@/lib/format";
+import { Badge } from "@/components/ui/badge";
+import { formatDateTime, LISTING_STATUS_LABELS } from "@/lib/format";
 
 export default async function AgentDashboardPage() {
   const user = await requireUser(["AGENT", "MANAGER"]);
   const scope = agentScope(user, "agentId");
   const clientScope = agentScope(user, "managingAgentId");
+  const today = new Date();
 
   const [propertyCount, clientCount, recentUpdates, upcomingVisits] = await Promise.all([
     prisma.property.count({ where: scope }),
@@ -26,11 +34,52 @@ export default async function AgentDashboardPage() {
     }),
   ]);
 
+  const [todayVisits, activeProperties, keysHeld, weeklyStats, ownActivity] = await Promise.all([
+    prisma.visit.findMany({
+      where: { property: scope, status: "SCHEDULED", scheduledAt: { gte: startOfDay(today), lte: endOfDay(today) } },
+      orderBy: { scheduledAt: "asc" },
+      include: { property: { select: { title: true, id: true } } },
+    }),
+    prisma.property.findMany({
+      where: { ...scope, listingStatus: { in: ["AVAILABLE", "IN_PROGRESS"] } },
+      orderBy: { updatedAt: "desc" },
+      take: 6,
+      select: { id: true, title: true, city: true, listingStatus: true },
+    }),
+    prisma.property.findMany({
+      where: { keyHolderId: user.id, keyStatus: "WITH_AGENT" },
+      select: { id: true, title: true, keyLastTakenAt: true },
+    }),
+    getAgentStats(user.id, "week"),
+    prisma.activityLog.findMany({
+      where: { agentId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 8,
+      include: { property: { select: { title: true } } },
+    }),
+  ]);
+
+  const quickActions = [
+    { label: "הוספת נכס", href: "/agent/properties/new", icon: Plus },
+    { label: "לקוח חדש", href: "/agent/clients/new", icon: UserPlus },
+    { label: "כל הנכסים", href: "/agent/properties", icon: Building },
+    { label: "כל הלקוחות", href: "/agent/clients", icon: Users },
+  ];
+
+  const weeklyStatRows = [
+    { label: "ביקורים", value: weeklyStats.visits },
+    { label: "פגישות", value: weeklyStats.meetings },
+    { label: "שיחות", value: weeklyStats.calls },
+    { label: "נכסים שנוספו", value: weeklyStats.propertiesAdded },
+    { label: "עדכוני ציר זמן", value: weeklyStats.timelineUpdates },
+    { label: "עסקאות שנסגרו", value: weeklyStats.closedDeals },
+  ];
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">
-        ברוכים השבים, {user.name?.split(" ")[0]}
-      </h1>
+      <h1 className="text-2xl font-bold">שלום {user.name?.split(" ")[0]}</h1>
+
+      <QuickActions actions={quickActions} />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
@@ -54,12 +103,112 @@ export default async function AgentDashboardPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
+            <CardTitle className="text-lg">לוח הזמנים של היום</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {todayVisits.length === 0 && (
+              <EmptyState icon={Building} message="אין סיורים מתוכננים להיום." />
+            )}
+            {todayVisits.map((visit) => (
+              <Link
+                key={visit.id}
+                href={`/agent/properties/${visit.property.id}`}
+                className="block rounded-md border p-3 text-sm hover:bg-muted/50"
+              >
+                <p className="font-medium">{visit.property.title}</p>
+                <p className="text-muted-foreground">{formatDateTime(visit.scheduledAt)}</p>
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">ביקורים קרובים</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {upcomingVisits.length === 0 && (
+              <EmptyState icon={Building} message="אין ביקורים מתוכננים." />
+            )}
+            {upcomingVisits.map((visit) => (
+              <Link
+                key={visit.id}
+                href={`/agent/properties/${visit.property.id}`}
+                className="block rounded-md border p-3 text-sm hover:bg-muted/50"
+              >
+                <p className="font-medium">{visit.property.title}</p>
+                <p className="text-muted-foreground">{formatDateTime(visit.scheduledAt)}</p>
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-lg">הנכסים הפעילים שלי</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {activeProperties.length === 0 && (
+              <EmptyState icon={Building} message="אין נכסים פעילים כרגע." actionLabel="הוספת נכס" actionHref="/agent/properties/new" />
+            )}
+            {activeProperties.map((property) => (
+              <Link
+                key={property.id}
+                href={`/agent/properties/${property.id}`}
+                className="flex items-center justify-between rounded-md border p-2 text-sm hover:bg-muted/50"
+              >
+                <div>
+                  <p className="font-medium">{property.title}</p>
+                  <p className="text-xs text-muted-foreground">{property.city}</p>
+                </div>
+                <Badge variant="secondary">{LISTING_STATUS_LABELS[property.listingStatus]}</Badge>
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">מפתחות אצלי ({keysHeld.length})</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {keysHeld.length === 0 && <p className="text-sm text-muted-foreground">אין מפתחות אצלך כרגע.</p>}
+            {keysHeld.map((property) => (
+              <Link
+                key={property.id}
+                href={`/agent/properties/${property.id}`}
+                className="block rounded-md border p-2 text-sm hover:bg-muted/50"
+              >
+                {property.title}
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">סטטיסטיקה שבועית</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {weeklyStatRows.map((row) => (
+              <div key={row.label} className="flex items-center justify-between rounded-md border px-3 py-2">
+                <span className="text-muted-foreground">{row.label}</span>
+                <span className="font-heading text-primary">{row.value}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle className="text-lg">עדכונים אחרונים</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {recentUpdates.length === 0 && (
-              <p className="text-sm text-muted-foreground">עדיין לא פורסמו עדכונים.</p>
-            )}
+            {recentUpdates.length === 0 && <p className="text-sm text-muted-foreground">עדיין לא פורסמו עדכונים.</p>}
             {recentUpdates.map((update) => (
               <Link
                 key={update.id}
@@ -76,22 +225,10 @@ export default async function AgentDashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">ביקורים קרובים</CardTitle>
+            <CardTitle className="text-lg">הפעילות שלי</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {upcomingVisits.length === 0 && (
-              <p className="text-sm text-muted-foreground">אין ביקורים מתוכננים.</p>
-            )}
-            {upcomingVisits.map((visit) => (
-              <Link
-                key={visit.id}
-                href={`/agent/properties/${visit.property.id}`}
-                className="block rounded-md border p-3 text-sm hover:bg-muted/50"
-              >
-                <p className="font-medium">{visit.property.title}</p>
-                <p className="text-muted-foreground">{formatDateTime(visit.scheduledAt)}</p>
-              </Link>
-            ))}
+          <CardContent>
+            <ActivityLogList logs={ownActivity} showProperty />
           </CardContent>
         </Card>
       </div>

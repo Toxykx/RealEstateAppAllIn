@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Building, UserCog, Mail, UserCircle, Search } from "lucide-react";
+import { LayoutDashboard, Users, Building, UserCog, Mail, UserCircle, Search, Activity } from "lucide-react";
 import type { DashboardNavItem } from "@/components/layout/dashboard-shell";
 
 export const agentNavItems: DashboardNavItem[] = [
@@ -14,6 +14,7 @@ export const managerNavItems: DashboardNavItem[] = [
   { href: "/agent/clients", label: "לקוחות", icon: <Users className="h-4 w-4" /> },
   { href: "/agent/properties", label: "נכסים", icon: <Building className="h-4 w-4" /> },
   { href: "/manager/search", label: "חיפוש", icon: <Search className="h-4 w-4" /> },
+  { href: "/manager/activity", label: "מרכז פעילות", icon: <Activity className="h-4 w-4" /> },
   { href: "/manager/inquiries", label: "פניות", icon: <Mail className="h-4 w-4" /> },
   { href: "/agent/profile", label: "פרופיל", icon: <UserCircle className="h-4 w-4" /> },
 ];
