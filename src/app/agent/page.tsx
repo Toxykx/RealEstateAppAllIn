@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { startOfDay, endOfDay } from "date-fns";
 import { Plus, UserPlus, Building, Users } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import { prisma, withDbRetry } from "@/lib/prisma";
 import { requireUser, agentScope } from "@/lib/authz";
 import { getAgentStats } from "@/lib/stats";
 import { ActivityLogList } from "@/components/manager/activity-log-list";
@@ -17,47 +17,51 @@ export default async function AgentDashboardPage() {
   const clientScope = agentScope(user, "managingAgentId");
   const today = new Date();
 
-  const [propertyCount, clientCount, recentUpdates, upcomingVisits] = await Promise.all([
-    prisma.property.count({ where: scope }),
-    prisma.user.count({ where: { role: "CLIENT", ...clientScope } }),
-    prisma.propertyUpdate.findMany({
-      where: { property: scope },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-      include: { property: { select: { title: true, id: true } } },
-    }),
-    prisma.visit.findMany({
-      where: { property: scope, status: "SCHEDULED", scheduledAt: { gte: new Date() } },
-      orderBy: { scheduledAt: "asc" },
-      take: 5,
-      include: { property: { select: { title: true, id: true } } },
-    }),
-  ]);
+  const [propertyCount, clientCount, recentUpdates, upcomingVisits] = await withDbRetry(() =>
+    Promise.all([
+      prisma.property.count({ where: scope }),
+      prisma.user.count({ where: { role: "CLIENT", ...clientScope } }),
+      prisma.propertyUpdate.findMany({
+        where: { property: scope },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        include: { property: { select: { title: true, id: true } } },
+      }),
+      prisma.visit.findMany({
+        where: { property: scope, status: "SCHEDULED", scheduledAt: { gte: new Date() } },
+        orderBy: { scheduledAt: "asc" },
+        take: 5,
+        include: { property: { select: { title: true, id: true } } },
+      }),
+    ]),
+  );
 
-  const [todayVisits, activeProperties, keysHeld, weeklyStats, ownActivity] = await Promise.all([
-    prisma.visit.findMany({
-      where: { property: scope, status: "SCHEDULED", scheduledAt: { gte: startOfDay(today), lte: endOfDay(today) } },
-      orderBy: { scheduledAt: "asc" },
-      include: { property: { select: { title: true, id: true } } },
-    }),
-    prisma.property.findMany({
-      where: { ...scope, listingStatus: { in: ["AVAILABLE", "IN_PROGRESS"] } },
-      orderBy: { updatedAt: "desc" },
-      take: 6,
-      select: { id: true, title: true, city: true, listingStatus: true },
-    }),
-    prisma.property.findMany({
-      where: { keyHolderId: user.id, keyStatus: "WITH_AGENT" },
-      select: { id: true, title: true, keyLastTakenAt: true },
-    }),
-    getAgentStats(user.id, "week"),
-    prisma.activityLog.findMany({
-      where: { agentId: user.id },
-      orderBy: { createdAt: "desc" },
-      take: 8,
-      include: { property: { select: { title: true } } },
-    }),
-  ]);
+  const [todayVisits, activeProperties, keysHeld, weeklyStats, ownActivity] = await withDbRetry(() =>
+    Promise.all([
+      prisma.visit.findMany({
+        where: { property: scope, status: "SCHEDULED", scheduledAt: { gte: startOfDay(today), lte: endOfDay(today) } },
+        orderBy: { scheduledAt: "asc" },
+        include: { property: { select: { title: true, id: true } } },
+      }),
+      prisma.property.findMany({
+        where: { ...scope, listingStatus: { in: ["AVAILABLE", "IN_PROGRESS"] } },
+        orderBy: { updatedAt: "desc" },
+        take: 6,
+        select: { id: true, title: true, city: true, listingStatus: true },
+      }),
+      prisma.property.findMany({
+        where: { keyHolderId: user.id, keyStatus: "WITH_AGENT" },
+        select: { id: true, title: true, keyLastTakenAt: true },
+      }),
+      getAgentStats(user.id, "week"),
+      prisma.activityLog.findMany({
+        where: { agentId: user.id },
+        orderBy: { createdAt: "desc" },
+        take: 8,
+        include: { property: { select: { title: true } } },
+      }),
+    ]),
+  );
 
   const quickActions = [
     { label: "הוספת נכס", href: "/agent/properties/new", icon: Plus },

@@ -14,7 +14,7 @@ import {
   Building,
   Search,
 } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import { prisma, withDbRetry } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
 import {
   getManagerKpis,
@@ -42,30 +42,34 @@ export default async function ManagerDashboardPage() {
   const user = await requireUser(["MANAGER"]);
 
   // Split into sequential batches (rather than one ~24-way Promise.all) to stay
-  // comfortably under the Supabase pooler's connection limit for this request.
-  const [kpis, distribution, agentPerformance] = await Promise.all([
-    getManagerKpis(),
-    getPropertyDistribution(),
-    getAgentPerformanceComparison("week"),
-  ]);
+  // comfortably under the Supabase pooler's connection limit for this request,
+  // and retry each batch once if the pooler drops a burst of connections
+  // (most common right after a fresh login).
+  const [kpis, distribution, agentPerformance] = await withDbRetry(() =>
+    Promise.all([getManagerKpis(), getPropertyDistribution(), getAgentPerformanceComparison("week")]),
+  );
 
-  const [weeklyActivity, monthlyActivity, briefingCore, alerts] = await Promise.all([
-    getWeeklyActivitySeries(),
-    getMonthlyActivitySeries(),
-    getDailyBriefingCore(),
-    getManagerAlerts(),
-  ]);
+  const [weeklyActivity, monthlyActivity, briefingCore, alerts] = await withDbRetry(() =>
+    Promise.all([
+      getWeeklyActivitySeries(),
+      getMonthlyActivitySeries(),
+      getDailyBriefingCore(),
+      getManagerAlerts(),
+    ]),
+  );
 
-  const [newInquiries, recentProperties, recentClients, recentActivity] = await Promise.all([
-    prisma.contactMessage.count({ where: { status: "NEW" } }),
-    prisma.property.findMany({ orderBy: { createdAt: "desc" }, take: 5, include: { agent: { select: { name: true } } } }),
-    prisma.user.findMany({ where: { role: "CLIENT" }, orderBy: { createdAt: "desc" }, take: 5 }),
-    prisma.activityLog.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 12,
-      include: { agent: { select: { name: true } }, property: { select: { title: true } } },
-    }),
-  ]);
+  const [newInquiries, recentProperties, recentClients, recentActivity] = await withDbRetry(() =>
+    Promise.all([
+      prisma.contactMessage.count({ where: { status: "NEW" } }),
+      prisma.property.findMany({ orderBy: { createdAt: "desc" }, take: 5, include: { agent: { select: { name: true } } } }),
+      prisma.user.findMany({ where: { role: "CLIENT" }, orderBy: { createdAt: "desc" }, take: 5 }),
+      prisma.activityLog.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 12,
+        include: { agent: { select: { name: true } }, property: { select: { title: true } } },
+      }),
+    ]),
+  );
 
   const staleProperties = alerts.filter((a) => a.type === "STALE_PROPERTY" || a.type === "NO_ACTIVITY").length;
   const missingImages = alerts.filter((a) => a.type === "MISSING_IMAGES").length;

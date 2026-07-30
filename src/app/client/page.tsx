@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { prisma, withDbRetry } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
 import { serializeProperty } from "@/lib/properties";
 import { getSignedDocumentUrl } from "@/lib/storage";
@@ -21,7 +21,7 @@ export default async function ClientHomePage() {
   const sessionUser = await requireUser(["CLIENT"]);
 
   const [user, ownedProperties, upcomingVisits, latestUpdates, recentDocuments, recentNotifications] =
-    await Promise.all([
+    await withDbRetry(() => Promise.all([
       prisma.user.findUniqueOrThrow({
         where: { id: sessionUser.id },
         include: { managingAgent: { select: { name: true, phone: true, email: true } } },
@@ -54,7 +54,7 @@ export default async function ClientHomePage() {
         orderBy: { createdAt: "desc" },
         take: 5,
       }),
-    ]);
+    ]));
 
   const documentsWithUrls = await Promise.all(
     recentDocuments.map(async (doc) => ({

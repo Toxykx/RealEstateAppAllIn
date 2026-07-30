@@ -78,11 +78,21 @@ export default async function PropertyDetailPage({
   });
   if (!property) notFound();
 
-  const clients = await prisma.user.findMany({
+  const scopedClients = await prisma.user.findMany({
     where: { role: "CLIENT", ...agentScope(user, "managingAgentId") },
     select: { id: true, name: true },
     orderBy: { name: "asc" },
   });
+
+  // The current owner may be managed by a different agent than the one
+  // viewing this page (ownership isn't tied to managingAgentId) — make sure
+  // they still appear as a selectable, correctly-labeled option.
+  const clients =
+    property.ownerClient && !scopedClients.some((c) => c.id === property.ownerClient!.id)
+      ? [...scopedClients, { id: property.ownerClient.id, name: property.ownerClient.name }].sort((a, b) =>
+          a.name.localeCompare(b.name),
+        )
+      : scopedClients;
 
   const agents = user.role === "MANAGER"
     ? await prisma.user.findMany({

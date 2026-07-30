@@ -2,18 +2,30 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
 import { signIn } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
+const ROLE_HOME: Record<string, string> = {
+  CLIENT: "/client",
+  AGENT: "/agent",
+  MANAGER: "/manager",
+};
+
 async function loginAction(formData: FormData) {
   "use server";
+  const email = formData.get("email") as string;
+
   try {
+    // redirect: false + a direct role-based redirect below avoids bouncing
+    // through an intermediate /dashboard hop, which added an extra
+    // client-side navigation that could get stuck mid-transition.
     await signIn("credentials", {
-      email: formData.get("email"),
+      email,
       password: formData.get("password"),
-      redirectTo: "/dashboard",
+      redirect: false,
     });
   } catch (error) {
     if (error instanceof AuthError) {
@@ -21,6 +33,12 @@ async function loginAction(formData: FormData) {
     }
     throw error;
   }
+
+  // auth() can't be re-read within the same request signIn() just set the
+  // session cookie in (it only sees the incoming request's cookies), so the
+  // role is looked up directly instead of round-tripping through the session.
+  const user = await prisma.user.findUnique({ where: { email }, select: { role: true } });
+  redirect(user?.role ? ROLE_HOME[user.role] : "/login");
 }
 
 export default async function LoginPage({
