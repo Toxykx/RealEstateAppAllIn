@@ -3,8 +3,9 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { PropertyCard } from "@/components/property/property-card";
 import { buttonVariants } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { getPublicProperties } from "@/lib/properties";
-import { Search } from "lucide-react";
+import { Search, Home } from "lucide-react";
 
 export default async function HomePage() {
   const properties = await getPublicProperties();
@@ -49,9 +50,7 @@ export default async function HomePage() {
             </Link>
           </div>
           {featured.length === 0 ? (
-            <p className="text-muted-foreground">
-              עדיין אין נכסים מפורסמים — בקרו שוב בקרוב.
-            </p>
+            <EmptyState icon={Home} message="עדיין אין נכסים מפורסמים" description="בקרו שוב בקרוב." />
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {featured.map((property) => (

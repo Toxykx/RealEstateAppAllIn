@@ -1,14 +1,16 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
 import { getSignedDocumentUrl } from "@/lib/storage";
 import { WhatsAppButton } from "@/components/property/whatsapp-button";
+import { PropertyGallery } from "@/components/property/property-gallery";
 import { DealProgress } from "@/components/property/deal-progress";
 import { logActivity } from "@/lib/activity-log";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { MessageSquareText, FileText, CalendarDays } from "lucide-react";
 import {
   LISTING_STATUS_LABELS,
   dealStageIndex,
@@ -80,24 +82,7 @@ export default async function ClientPropertyDetailPage({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {property.images.length === 0 ? (
-          <div className="col-span-full flex aspect-video items-center justify-center rounded-lg bg-muted text-muted-foreground">
-            אין תמונות עדיין
-          </div>
-        ) : (
-          property.images.map((image, i) => (
-            <div
-              key={image.id}
-              className={`relative overflow-hidden rounded-lg bg-muted ${
-                i === 0 ? "col-span-2 aspect-video sm:col-span-4" : "aspect-square"
-              }`}
-            >
-              <Image src={image.url} alt={property.title} fill className="object-cover" />
-            </div>
-          ))
-        )}
-      </div>
+      <PropertyGallery images={property.images} alt={property.title} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
@@ -145,7 +130,7 @@ export default async function ClientPropertyDetailPage({
         </CardHeader>
         <CardContent className="space-y-3">
           {property.updates.length === 0 && (
-            <p className="text-sm text-muted-foreground">עדיין אין עדכונים.</p>
+            <EmptyState icon={MessageSquareText} message="עדיין אין עדכונים" compact />
           )}
           {property.updates.map((update) => (
             <div key={update.id} className="rounded-md border p-3 text-sm">
@@ -165,7 +150,7 @@ export default async function ClientPropertyDetailPage({
           </CardHeader>
           <CardContent className="space-y-2">
             {documentsWithUrls.length === 0 && (
-              <p className="text-sm text-muted-foreground">עדיין לא שותפו מסמכים.</p>
+              <EmptyState icon={FileText} message="עדיין לא שותפו מסמכים" compact />
             )}
             {documentsWithUrls.map((doc) => (
               <div key={doc.id} className="flex items-center justify-between rounded-md border p-2 text-sm">
@@ -188,7 +173,7 @@ export default async function ClientPropertyDetailPage({
           </CardHeader>
           <CardContent className="space-y-2">
             {property.visits.length === 0 && (
-              <p className="text-sm text-muted-foreground">אין ביקורים מתוכננים.</p>
+              <EmptyState icon={CalendarDays} message="אין ביקורים מתוכננים" compact />
             )}
             {property.visits.map((visit) => (
               <div key={visit.id} className="flex items-center justify-between rounded-md border p-2 text-sm">

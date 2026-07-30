@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 import { createAgent } from "@/lib/actions/agents";
-import { Button } from "@/components/ui/button";
+import { useFocusOnError } from "@/lib/use-focus-on-error";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -14,28 +15,30 @@ import {
 } from "@/components/ui/select";
 
 export function NewAgentForm() {
-  const [state, formAction, isPending] = useActionState(createAgent, undefined);
+  const [state, formAction] = useActionState(createAgent, undefined);
+  const formRef = useRef<HTMLFormElement>(null);
+  useFocusOnError(formRef, state?.error);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form ref={formRef} action={formAction} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="name">שם מלא</Label>
-        <Input id="name" name="name" required />
+        <Label htmlFor="name" required>שם מלא</Label>
+        <Input id="name" name="name" placeholder="לדוגמה: דנה כהן" required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="email">כתובת אימייל</Label>
-        <Input id="email" name="email" type="email" required />
+        <Label htmlFor="email" required>כתובת אימייל</Label>
+        <Input id="email" name="email" type="email" placeholder="name@example.com" required />
       </div>
       <div className="space-y-2">
         <Label htmlFor="phone">טלפון (לא חובה)</Label>
-        <Input id="phone" name="phone" type="tel" />
+        <Input id="phone" name="phone" type="tel" placeholder="05X-XXXXXXX" />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">סיסמה זמנית</Label>
+        <Label htmlFor="password" required>סיסמה זמנית</Label>
         <Input id="password" name="password" type="text" required minLength={6} />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="role">תפקיד</Label>
+        <Label htmlFor="role" required>תפקיד</Label>
         <Select
           name="role"
           defaultValue="AGENT"
@@ -54,9 +57,7 @@ export function NewAgentForm() {
         </Select>
       </div>
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
-      <Button type="submit" disabled={isPending}>
-        {isPending ? "יוצר..." : "יצירת חשבון"}
-      </Button>
+      <SubmitButton pendingLabel="יוצר...">יצירת חשבון</SubmitButton>
     </form>
   );
 }

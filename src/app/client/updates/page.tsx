@@ -1,11 +1,13 @@
 import Link from "next/link";
+import { Bell } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
 import { markAllNotificationsRead } from "@/lib/actions/notifications";
 import { ActionForm } from "@/components/action-form";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatDateTime } from "@/lib/format";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -33,16 +35,20 @@ export default async function UpdatesPage() {
         <h1 className="text-2xl font-bold">עדכונים</h1>
         {hasUnread && (
           <ActionForm action={markAllNotificationsRead}>
-            <Button type="submit" variant="outline" size="sm">
+            <SubmitButton variant="outline" size="sm" pendingLabel="מסמן...">
               סימון הכל כנקרא
-            </Button>
+            </SubmitButton>
           </ActionForm>
         )}
       </div>
 
       <div className="space-y-3">
         {notifications.length === 0 && (
-          <p className="text-sm text-muted-foreground">עדיין אין עדכונים.</p>
+          <EmptyState
+            icon={Bell}
+            message="עדיין אין עדכונים"
+            description="עדכוני סטטוס, מסמכים וביקורים על הנכסים שלך יופיעו כאן."
+          />
         )}
         {notifications.map((notification) => (
           <Link

@@ -1,6 +1,8 @@
 "use client";
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { PieChart as PieChartIcon } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const COLORS = ["var(--color-chart-1)", "var(--color-chart-3)"];
 
@@ -14,7 +16,14 @@ const tooltipStyle = {
 
 export function PropertyDistributionPie({ sale, rent }: { sale: number; rent: number }) {
   if (sale === 0 && rent === 0) {
-    return <p className="text-sm text-muted-foreground">אין נתונים להצגה.</p>;
+    return (
+      <EmptyState
+        icon={PieChartIcon}
+        message="אין נתונים להצגה"
+        description="ההתפלגות תופיע לאחר הוספת נכסים למערכת."
+        compact
+      />
+    );
   }
 
   const data = [

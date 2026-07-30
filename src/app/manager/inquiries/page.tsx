@@ -1,11 +1,13 @@
 import Link from "next/link";
+import { Mail } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
 import { updateInquiry } from "@/lib/actions/inquiries";
 import { ActionForm } from "@/components/action-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Select,
   SelectContent,
@@ -76,15 +78,19 @@ export default async function InquiriesPage() {
                     <SelectItem value="CLOSED">סגור</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button type="submit" size="sm">
+                <SubmitButton size="sm">
                   שמירה
-                </Button>
+                </SubmitButton>
               </ActionForm>
             </CardContent>
           </Card>
         ))}
         {inquiries.length === 0 && (
-          <p className="text-sm text-muted-foreground">עדיין אין פניות.</p>
+          <EmptyState
+            icon={Mail}
+            message="עדיין אין פניות"
+            description="פניות שיישלחו מטופס יצירת הקשר באתר הציבורי יופיעו כאן."
+          />
         )}
       </div>
     </div>

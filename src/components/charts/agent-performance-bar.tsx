@@ -1,7 +1,9 @@
 "use client";
 
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { BarChart3 } from "lucide-react";
 import type { AgentPerformanceRow } from "@/lib/stats";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const tooltipStyle = {
   background: "var(--color-popover)",
@@ -13,7 +15,14 @@ const tooltipStyle = {
 
 export function AgentPerformanceBar({ data }: { data: AgentPerformanceRow[] }) {
   if (data.length === 0) {
-    return <p className="text-sm text-muted-foreground">אין נתוני מתווכים להצגה.</p>;
+    return (
+      <EmptyState
+        icon={BarChart3}
+        message="אין נתוני מתווכים להצגה"
+        description="הנתונים יופיעו לאחר שיתווספו מתווכים לצוות."
+        compact
+      />
+    );
   }
 
   const chartData = data.map((row) => ({ ...row, name: row.agentName }));

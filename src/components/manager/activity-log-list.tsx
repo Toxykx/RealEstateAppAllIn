@@ -1,5 +1,7 @@
+import { Activity } from "lucide-react";
 import { ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_ICONS } from "@/lib/activity-log";
 import { formatDateTime } from "@/lib/format";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { ActivityType } from "@prisma/client";
 
 export type ActivityLogEntry = {
@@ -19,7 +21,14 @@ export function ActivityLogList({
   showProperty?: boolean;
 }) {
   if (logs.length === 0) {
-    return <p className="text-sm text-muted-foreground">עדיין אין פעילות רשומה.</p>;
+    return (
+      <EmptyState
+        icon={Activity}
+        message="עדיין אין פעילות רשומה"
+        description="פעולות כמו עדכוני סטטוס, ביקורים ומסמכים יופיעו כאן."
+        compact
+      />
+    );
   }
 
   return (

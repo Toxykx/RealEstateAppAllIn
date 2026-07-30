@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/brand-logo";
 import { signOutAction } from "@/lib/actions/auth";
+import { PageTransition } from "@/components/motion/page-transition";
 
 export type DashboardNavItem = {
   href: string;
@@ -67,15 +68,15 @@ export function DashboardShell({
       </aside>
 
       <div className="flex flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b border-border bg-card px-4 sm:hidden">
+        <header className="flex h-16 min-h-16 items-center justify-between border-b border-border bg-card px-4 pt-[env(safe-area-inset-top)] sm:hidden">
           <BrandLogo />
           <form action={signOutAction}>
-            <Button type="submit" variant="ghost" size="icon-sm">
+            <Button type="submit" variant="ghost" size="icon-sm" className="size-11 sm:size-7" aria-label="התנתקות">
               <LogOut className="h-4 w-4" />
             </Button>
           </form>
         </header>
-        <nav className="flex gap-1 overflow-x-auto border-b border-border bg-card px-2 py-2 sm:hidden">
+        <nav className="flex gap-1 overflow-x-auto border-b border-border bg-card px-2 py-2 [overscroll-behavior-x:contain] sm:hidden">
           {navItems.map((item) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
@@ -83,7 +84,7 @@ export function DashboardShell({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "shrink-0 rounded-sm px-3 py-1.5 text-sm font-medium",
+                  "flex shrink-0 items-center rounded-sm px-3 py-2.5 text-sm font-medium",
                   active ? "bg-primary/10 text-primary" : "text-muted-foreground",
                 )}
               >
@@ -92,7 +93,9 @@ export function DashboardShell({
             );
           })}
         </nav>
-        <main className="flex-1 bg-background p-4 sm:p-6">{children}</main>
+        <main className="flex-1 bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-6">
+          <PageTransition>{children}</PageTransition>
+        </main>
       </div>
     </div>
   );

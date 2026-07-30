@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Rubik, Frank_Ruhl_Libre } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { PwaRegister } from "@/components/pwa-register";
 import "./globals.css";
 
 const rubik = Rubik({
@@ -17,6 +18,21 @@ const frankRuhlLibre = Frank_Ruhl_Libre({
 export const metadata: Metadata = {
   title: "ALL IN Real Estate",
   description: "בית תיווך יוקרתי — נדל״ן אקסקלוסיבי, ליווי אישי מהצגה ועד חתימה.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "ALL IN",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#14110d",
+  // viewport-fit=cover lets the app draw under the iPhone notch/home-indicator
+  // area; components then use env(safe-area-inset-*) to pad back in.
+  viewportFit: "cover",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -33,6 +49,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <Toaster />
+        <PwaRegister />
       </body>
     </html>
   );

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BrandLogo } from "@/components/brand-logo";
 import { signOutAction } from "@/lib/actions/auth";
+import { PageTransition } from "@/components/motion/page-transition";
 
 const navItems = [
   { href: "/client", label: "הנכסים שלי", shortLabel: "נכסים", icon: Home },
@@ -27,7 +28,7 @@ export function ClientShell({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur">
+      <header className="sticky top-0 z-40 flex h-16 min-h-16 items-center justify-between border-b border-border bg-background/95 px-4 pt-[env(safe-area-inset-top)] backdrop-blur">
         <BrandLogo markClassName="h-7 w-7 text-sm" />
         <nav className="hidden items-center gap-1 sm:flex">
           {navItems.map((item) => {
@@ -52,15 +53,17 @@ export function ClientShell({
           })}
         </nav>
         <form action={signOutAction}>
-          <Button type="submit" variant="ghost" size="icon-sm">
+          <Button type="submit" variant="ghost" size="icon-sm" className="size-11 sm:size-7" aria-label="התנתקות">
             <LogOut className="h-4 w-4" />
           </Button>
         </form>
       </header>
 
-      <main className="flex-1 bg-background p-4 pb-24 sm:pb-6">{children}</main>
+      <main className="flex-1 bg-background p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:pb-6">
+        <PageTransition>{children}</PageTransition>
+      </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-border bg-card sm:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] sm:hidden">
         {navItems.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;

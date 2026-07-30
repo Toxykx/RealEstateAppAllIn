@@ -25,16 +25,21 @@ export function ActionForm({
   }, null);
 
   const lastHandled = useRef<ActionData | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (!state || state === lastHandled.current) return;
     lastHandled.current = state;
-    if (state.success) toast.success(state.message);
-    else toast.error(state.message);
+    if (state.success) {
+      toast.success(state.message);
+    } else {
+      toast.error(state.message);
+      formRef.current?.querySelector<HTMLElement>("input, textarea, select")?.focus();
+    }
   }, [state]);
 
   return (
-    <form action={formAction} className={className}>
+    <form ref={formRef} action={formAction} className={className}>
       {children}
     </form>
   );

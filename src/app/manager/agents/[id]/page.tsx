@@ -8,11 +8,13 @@ import { getAgentStats } from "@/lib/stats";
 import { ActivityLogList } from "@/components/manager/activity-log-list";
 import { ActionForm } from "@/components/action-form";
 import { CreatedToast } from "@/components/created-toast";
+import { EmptyState } from "@/components/ui/empty-state";
+import { KeyRound } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import {
   Select,
   SelectContent,
@@ -87,15 +89,15 @@ export default async function AgentDetailPage({
           <CardContent>
             <ActionForm action={boundUpdate} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">שם מלא</Label>
+                <Label htmlFor="name" required>שם מלא</Label>
                 <Input id="name" name="name" defaultValue={agent.name} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">טלפון</Label>
-                <Input id="phone" name="phone" defaultValue={agent.phone ?? ""} />
+                <Input id="phone" name="phone" defaultValue={agent.phone ?? ""} placeholder="05X-XXXXXXX" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="role">תפקיד</Label>
+                <Label htmlFor="role" required>תפקיד</Label>
                 <Select
                   name="role"
                   defaultValue={agent.role}
@@ -121,7 +123,7 @@ export default async function AgentDetailPage({
                 {activeProperties} נכסים פעילים · {agent._count.managedClients} לקוחות ·{" "}
                 {agent._count.agentProperties} נכסים בסך הכול.
               </p>
-              <Button type="submit">שמירת שינויים</Button>
+              <SubmitButton pendingLabel="שומר...">שמירת שינויים</SubmitButton>
             </ActionForm>
           </CardContent>
         </Card>
@@ -156,7 +158,7 @@ export default async function AgentDetailPage({
           </CardHeader>
           <CardContent className="space-y-2">
             {keysHeld.length === 0 && (
-              <p className="text-sm text-muted-foreground">אין מפתחות אצל המתווך כרגע.</p>
+              <EmptyState icon={KeyRound} message="אין מפתחות אצל המתווך כרגע" compact />
             )}
             {keysHeld.map((property) => (
               <Link

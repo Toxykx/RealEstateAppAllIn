@@ -1,11 +1,12 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { Trash2 } from "lucide-react";
+import { Trash2, FileText, MessageSquareText, CalendarDays } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ActionForm } from "@/components/action-form";
 import { CreatedToast } from "@/components/created-toast";
 import { DealProgress } from "@/components/property/deal-progress";
+import { PropertyGallery } from "@/components/property/property-gallery";
 import { KeyManagementCard } from "@/components/manager/key-management-card";
 import { ActivityLogList } from "@/components/manager/activity-log-list";
 import { prisma } from "@/lib/prisma";
@@ -27,9 +28,9 @@ import { logManualActivity } from "@/lib/actions/activity";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { TextareaWithCounter } from "@/components/ui/textarea-with-counter";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -153,33 +154,33 @@ export default async function PropertyDetailPage({
             <ActionForm action={boundUpdateProperty} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="title">כותרת</Label>
+                  <Label htmlFor="title" required>כותרת</Label>
                   <Input id="title" name="title" defaultValue={property.title} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="city">עיר</Label>
+                  <Label htmlFor="city" required>עיר</Label>
                   <Input id="city" name="city" defaultValue={property.city} required />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="addressLine">כתובת</Label>
+                <Label htmlFor="addressLine" required>כתובת</Label>
                 <Input id="addressLine" name="addressLine" defaultValue={property.addressLine} required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">תיאור</Label>
-                <Textarea id="description" name="description" rows={4} defaultValue={property.description} required />
+                <Label htmlFor="description" required>תיאור</Label>
+                <TextareaWithCounter id="description" name="description" rows={4} maxLength={1000} defaultValue={property.description} required />
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
-                  <Label htmlFor="price">מחיר</Label>
+                  <Label htmlFor="price" required>מחיר</Label>
                   <Input id="price" name="price" type="number" defaultValue={property.price.toString()} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="currency">מטבע</Label>
+                  <Label htmlFor="currency" required>מטבע</Label>
                   <Input id="currency" name="currency" defaultValue={property.currency} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="propertyType">סוג נכס</Label>
+                  <Label htmlFor="propertyType" required>סוג נכס</Label>
                   <Select
                     name="propertyType"
                     defaultValue={property.propertyType}
@@ -212,7 +213,7 @@ export default async function PropertyDetailPage({
                   <Input id="areaSqm" name="areaSqm" type="number" defaultValue={property.areaSqm ?? ""} />
                 </div>
               </div>
-              <Button type="submit">שמירת פרטים</Button>
+              <SubmitButton pendingLabel="שומר...">שמירת פרטים</SubmitButton>
             </ActionForm>
           </CardContent>
         </Card>
@@ -241,7 +242,7 @@ export default async function PropertyDetailPage({
                     ))}
                   </SelectContent>
                 </Select>
-                <Button type="submit">שמירה</Button>
+                <SubmitButton pendingLabel="שומר...">שמירה</SubmitButton>
               </ActionForm>
             </CardContent>
           </Card>
@@ -265,7 +266,7 @@ export default async function PropertyDetailPage({
                     ))}
                   </SelectContent>
                 </Select>
-                <Button type="submit">עדכון</Button>
+                <SubmitButton pendingLabel="מעדכן...">עדכון</SubmitButton>
               </ActionForm>
             </CardContent>
           </Card>
@@ -293,7 +294,7 @@ export default async function PropertyDetailPage({
                     ))}
                   </SelectContent>
                 </Select>
-                <Button type="submit">שמירה</Button>
+                <SubmitButton pendingLabel="שומר...">שמירה</SubmitButton>
               </ActionForm>
             </CardContent>
           </Card>
@@ -321,7 +322,7 @@ export default async function PropertyDetailPage({
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button type="submit">שמירה</Button>
+                  <SubmitButton pendingLabel="שומר...">שמירה</SubmitButton>
                 </ActionForm>
               </CardContent>
             </Card>
@@ -386,28 +387,26 @@ export default async function PropertyDetailPage({
           <CardTitle className="text-lg">תמונות</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {property.images.map((image) => (
-              <div key={image.id} className="group relative aspect-square overflow-hidden rounded-md bg-muted">
-                <Image src={image.url} alt="" fill className="object-cover" />
-                {image.isCover && <Badge className="absolute start-1 top-1">תמונת נושא</Badge>}
-                <ActionForm action={deleteImageAction.bind(null, property.id, image.id)}>
-                  <Button
-                    type="submit"
-                    size="icon-sm"
-                    variant="destructive"
-                    aria-label="מחיקת תמונה"
-                    className="absolute end-1 top-1 opacity-0 transition-opacity group-hover:opacity-100"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </ActionForm>
-              </div>
-            ))}
-          </div>
+          <PropertyGallery
+            images={property.images}
+            alt={property.title}
+            renderOverlay={(image) => (
+              <ActionForm action={deleteImageAction.bind(null, property.id, image.id)}>
+                <SubmitButton
+                  size="icon-sm"
+                  variant="destructive"
+                  aria-label="מחיקת תמונה"
+                  className="absolute end-1 top-1 opacity-0 transition-opacity group-hover:opacity-100"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </SubmitButton>
+              </ActionForm>
+            )}
+          />
           <ActionForm action={boundUploadImage} className="flex flex-wrap items-end gap-2">
             <Input type="file" name="file" accept="image/*" required className="max-w-xs" />
-            <Button type="submit">העלאת תמונה</Button>
+            <SubmitButton pendingLabel="מעלה...">העלאת תמונה</SubmitButton>
           </ActionForm>
         </CardContent>
       </Card>
@@ -433,14 +432,14 @@ export default async function PropertyDetailPage({
                   {doc.visibleToClient && <Badge variant="secondary">גלוי ללקוח</Badge>}
                 </div>
                 <ActionForm action={deleteDocumentAction.bind(null, property.id, doc.id)}>
-                  <Button type="submit" size="icon-sm" variant="ghost" aria-label="מחיקת מסמך">
+                  <SubmitButton size="icon-sm" variant="ghost" aria-label="מחיקת מסמך">
                     <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  </SubmitButton>
                 </ActionForm>
               </li>
             ))}
             {property.documents.length === 0 && (
-              <p className="text-sm text-muted-foreground">עדיין לא הועלו מסמכים.</p>
+              <EmptyState icon={FileText} message="עדיין לא הועלו מסמכים" compact />
             )}
           </ul>
           <ActionForm
@@ -470,7 +469,7 @@ export default async function PropertyDetailPage({
               <Checkbox name="visibleToClient" />
               גלוי ללקוח
             </label>
-            <Button type="submit">העלאת מסמך</Button>
+            <SubmitButton pendingLabel="מעלה...">העלאת מסמך</SubmitButton>
           </ActionForm>
         </CardContent>
       </Card>
@@ -482,13 +481,13 @@ export default async function PropertyDetailPage({
         </CardHeader>
         <CardContent className="space-y-4">
           <ActionForm action={boundPostUpdate} className="space-y-2">
-            <Textarea name="message" placeholder="כתבו עדכון עבור נכס זה..." rows={2} required />
+            <TextareaWithCounter name="message" placeholder="כתבו עדכון עבור נכס זה..." rows={2} maxLength={500} required />
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Checkbox name="isInternal" />
                 הערה פנימית (לא מוצגת ללקוח)
               </label>
-              <Button type="submit">פרסום עדכון</Button>
+              <SubmitButton pendingLabel="מפרסם...">פרסום עדכון</SubmitButton>
             </div>
           </ActionForm>
           <ul className="space-y-3">
@@ -504,7 +503,7 @@ export default async function PropertyDetailPage({
               </li>
             ))}
             {property.updates.length === 0 && (
-              <p className="text-sm text-muted-foreground">עדיין לא פורסמו עדכונים.</p>
+              <EmptyState icon={MessageSquareText} message="עדיין לא פורסמו עדכונים" compact />
             )}
           </ul>
         </CardContent>
@@ -521,9 +520,9 @@ export default async function PropertyDetailPage({
             <Input name="visitorName" placeholder="שם המבקר (לא חובה)" />
             <Input name="visitorPhone" placeholder="טלפון המבקר (לא חובה)" />
             <Input name="notes" placeholder="הערות (לא חובה)" />
-            <Button type="submit" className="sm:col-span-2">
+            <SubmitButton pendingLabel="קובע..." className="sm:col-span-2">
               קביעת ביקור
-            </Button>
+            </SubmitButton>
           </ActionForm>
           <ul className="space-y-2">
             {property.visits.map((visit) => (
@@ -551,14 +550,14 @@ export default async function PropertyDetailPage({
                       <SelectItem value="CANCELLED">בוטל</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Button type="submit" size="sm">
+                  <SubmitButton size="sm">
                     עדכון
-                  </Button>
+                  </SubmitButton>
                 </ActionForm>
               </li>
             ))}
             {property.visits.length === 0 && (
-              <p className="text-sm text-muted-foreground">עדיין לא נקבעו ביקורים.</p>
+              <EmptyState icon={CalendarDays} message="עדיין לא נקבעו ביקורים" compact />
             )}
           </ul>
         </CardContent>
@@ -590,7 +589,7 @@ export default async function PropertyDetailPage({
               </SelectContent>
             </Select>
             <Input name="note" placeholder="פרטי השיחה או הפגישה" required />
-            <Button type="submit">תיעוד</Button>
+            <SubmitButton pendingLabel="מתעד...">תיעוד</SubmitButton>
           </ActionForm>
         </CardContent>
       </Card>

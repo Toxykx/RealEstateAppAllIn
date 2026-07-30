@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, CalendarDays, Home } from "lucide-react";
 import { formatPrice, formatDateTime, LISTING_STATUS_LABELS } from "@/lib/format";
@@ -110,18 +110,18 @@ export default async function ClientDetailPage({
           <CardContent>
             <ActionForm action={boundUpdate} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">שם מלא</Label>
+                <Label htmlFor="name" required>שם מלא</Label>
                 <Input id="name" name="name" defaultValue={client.name} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">טלפון</Label>
-                <Input id="phone" name="phone" defaultValue={client.phone ?? ""} />
+                <Input id="phone" name="phone" defaultValue={client.phone ?? ""} placeholder="05X-XXXXXXX" />
               </div>
               <div className="flex items-center gap-2">
                 <Checkbox id="isActive" name="isActive" defaultChecked={client.isActive} />
                 <Label htmlFor="isActive">חשבון פעיל</Label>
               </div>
-              <Button type="submit">שמירת שינויים</Button>
+              <SubmitButton pendingLabel="שומר...">שמירת שינויים</SubmitButton>
             </ActionForm>
           </CardContent>
         </Card>

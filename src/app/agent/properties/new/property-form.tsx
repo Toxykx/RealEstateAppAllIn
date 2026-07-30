@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 import { createProperty } from "@/lib/actions/properties";
-import { Button } from "@/components/ui/button";
+import { useFocusOnError } from "@/lib/use-focus-on-error";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { TextareaWithCounter } from "@/components/ui/textarea-with-counter";
 import {
   Select,
   SelectContent,
@@ -16,42 +17,51 @@ import {
 import { PROPERTY_TYPE_LABELS } from "@/lib/format";
 
 export function NewPropertyForm() {
-  const [state, formAction, isPending] = useActionState(createProperty, undefined);
+  const [state, formAction] = useActionState(createProperty, undefined);
+  const formRef = useRef<HTMLFormElement>(null);
+  useFocusOnError(formRef, state?.error);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form ref={formRef} action={formAction} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="title">כותרת</Label>
+          <Label htmlFor="title" required>כותרת</Label>
           <Input id="title" name="title" placeholder="לדוגמה: הרצל 15" required />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="city">עיר</Label>
-          <Input id="city" name="city" required />
+          <Label htmlFor="city" required>עיר</Label>
+          <Input id="city" name="city" placeholder="לדוגמה: תל אביב" required />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="addressLine">כתובת</Label>
-        <Input id="addressLine" name="addressLine" required />
+        <Label htmlFor="addressLine" required>כתובת</Label>
+        <Input id="addressLine" name="addressLine" placeholder="רחוב ומספר" required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">תיאור</Label>
-        <Textarea id="description" name="description" rows={4} required />
+        <Label htmlFor="description" required>תיאור</Label>
+        <TextareaWithCounter
+          id="description"
+          name="description"
+          rows={4}
+          maxLength={1000}
+          placeholder="תארו את הנכס — חדרים, שיפוצים, נוף, קרבה לתחבורה ציבורית..."
+          required
+        />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor="price">מחיר</Label>
-          <Input id="price" name="price" type="number" min={0} required />
+          <Label htmlFor="price" required>מחיר</Label>
+          <Input id="price" name="price" type="number" min={0} placeholder="0" required />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="currency">מטבע</Label>
+          <Label htmlFor="currency" required>מטבע</Label>
           <Input id="currency" name="currency" defaultValue="ILS" required />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="propertyType">סוג נכס</Label>
+          <Label htmlFor="propertyType" required>סוג נכס</Label>
           <Select
             name="propertyType"
             defaultValue="APARTMENT"
@@ -87,9 +97,7 @@ export function NewPropertyForm() {
       </div>
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
-      <Button type="submit" disabled={isPending}>
-        {isPending ? "יוצר..." : "יצירת נכס"}
-      </Button>
+      <SubmitButton pendingLabel="יוצר...">יצירת נכס</SubmitButton>
     </form>
   );
 }

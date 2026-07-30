@@ -1,6 +1,6 @@
 import { ActionForm, type ActionResult } from "@/components/action-form";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import {
   Select,
   SelectContent,
@@ -49,16 +49,16 @@ export function KeyManagementCard({
       <div className="flex flex-wrap gap-2">
         {keyStatus !== "WITH_AGENT" && (
           <ActionForm action={onTakeKey}>
-            <Button type="submit" size="sm">
+            <SubmitButton size="sm" pendingLabel="לוקח...">
               קחת מפתח
-            </Button>
+            </SubmitButton>
           </ActionForm>
         )}
         {keyStatus === "WITH_AGENT" && (
           <ActionForm action={onReturnKey}>
-            <Button type="submit" size="sm" variant="outline">
+            <SubmitButton size="sm" variant="outline" pendingLabel="מחזיר...">
               החזרת מפתח
-            </Button>
+            </SubmitButton>
           </ActionForm>
         )}
       </div>
@@ -81,9 +81,9 @@ export function KeyManagementCard({
               ))}
             </SelectContent>
           </Select>
-          <Button type="submit" size="sm" variant="ghost">
+          <SubmitButton size="sm" variant="ghost" pendingLabel="מעדכן...">
             עדכון סטטוס
-          </Button>
+          </SubmitButton>
         </ActionForm>
       )}
     </div>

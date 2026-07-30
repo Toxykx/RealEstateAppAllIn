@@ -1,11 +1,19 @@
 import Link from "next/link";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ShieldCheck } from "lucide-react";
 import type { ManagerAlert } from "@/lib/alerts";
 import { formatDateTime } from "@/lib/format";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export function AlertsWidget({ alerts }: { alerts: ManagerAlert[] }) {
   if (alerts.length === 0) {
-    return <p className="text-sm text-muted-foreground">אין התראות פתוחות.</p>;
+    return (
+      <EmptyState
+        icon={ShieldCheck}
+        message="אין התראות פתוחות"
+        description="כל הנכסים והפעילות במשרד תקינים כרגע."
+        compact
+      />
+    );
   }
 
   return (

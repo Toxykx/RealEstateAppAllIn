@@ -19,6 +19,7 @@ export function FavoriteButton({
     <button
       type="button"
       aria-label={isFavorited ? "הסרה מהמועדפים" : "הוספה למועדפים"}
+      aria-pressed={isFavorited}
       disabled={isPending}
       onClick={(e) => {
         e.preventDefault();

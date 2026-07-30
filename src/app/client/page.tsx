@@ -8,6 +8,8 @@ import { WhatsAppButton } from "@/components/property/whatsapp-button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { FadeIn } from "@/components/motion/fade-in";
+import { StaggerList, StaggerItem } from "@/components/motion/stagger-list";
 import { Home, CalendarDays, MessageSquareText, FileText, Bell } from "lucide-react";
 import { formatDateTime } from "@/lib/format";
 
@@ -72,9 +74,11 @@ export default async function ClientHomePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">שלום {user.name?.split(" ")[0]}</h1>
+      <FadeIn>
+        <h1 className="text-2xl font-bold">שלום {user.name?.split(" ")[0]}</h1>
+      </FadeIn>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <FadeIn delay={0.05} className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-lg">הנכסים שלי</CardTitle>
@@ -83,11 +87,13 @@ export default async function ClientHomePage() {
             {cardProperties.length === 0 ? (
               <EmptyState icon={Home} message="עדיין לא הוקצו לך נכסים. המתווך שלך יוסיף נכס כאן ברגע שיהיה מוכן." />
             ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <StaggerList className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {cardProperties.map((property) => (
-                  <PropertyCard key={property.id} property={property} href={`/client/properties/${property.id}`} />
+                  <StaggerItem key={property.id}>
+                    <PropertyCard property={property} href={`/client/properties/${property.id}`} />
+                  </StaggerItem>
                 ))}
-              </div>
+              </StaggerList>
             )}
           </CardContent>
         </Card>
@@ -107,9 +113,9 @@ export default async function ClientHomePage() {
             </CardContent>
           </Card>
         )}
-      </div>
+      </FadeIn>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <FadeIn delay={0.1} className="grid gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -117,7 +123,7 @@ export default async function ClientHomePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {upcomingVisits.length === 0 && <p className="text-sm text-muted-foreground">אין ביקורים מתוכננים.</p>}
+            {upcomingVisits.length === 0 && <EmptyState icon={CalendarDays} message="אין ביקורים מתוכננים" compact />}
             {upcomingVisits.map((visit) => (
               <Link
                 key={visit.id}
@@ -138,7 +144,7 @@ export default async function ClientHomePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {latestUpdates.length === 0 && <p className="text-sm text-muted-foreground">עדיין אין עדכונים.</p>}
+            {latestUpdates.length === 0 && <EmptyState icon={MessageSquareText} message="עדיין אין עדכונים" compact />}
             {latestUpdates.map((update) => (
               <Link
                 key={update.id}
@@ -159,7 +165,7 @@ export default async function ClientHomePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {documentsWithUrls.length === 0 && <p className="text-sm text-muted-foreground">עדיין לא שותפו מסמכים.</p>}
+            {documentsWithUrls.length === 0 && <EmptyState icon={FileText} message="עדיין לא שותפו מסמכים" compact />}
             {documentsWithUrls.map((doc) => (
               <div key={doc.id} className="flex items-center justify-between rounded-md border p-2 text-sm">
                 {doc.signedUrl ? (
@@ -174,32 +180,34 @@ export default async function ClientHomePage() {
             ))}
           </CardContent>
         </Card>
-      </div>
+      </FadeIn>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between text-lg">
-            <span className="flex items-center gap-2">
-              <Bell className="h-4 w-4" /> עדכונים ראשונים
-            </span>
-            <Link href="/client/updates" className="text-sm font-normal text-primary hover:underline">
-              כל העדכונים
-            </Link>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {recentNotifications.length === 0 && <p className="text-sm text-muted-foreground">עדיין אין עדכונים.</p>}
-          {recentNotifications.map((notification) => (
-            <div
-              key={notification.id}
-              className={`rounded-md border p-2 text-sm ${!notification.isRead ? "border-primary/40 bg-primary/5" : ""}`}
-            >
-              <p>{notification.message}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">{formatDateTime(notification.createdAt)}</p>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <FadeIn delay={0.15}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between text-lg">
+              <span className="flex items-center gap-2">
+                <Bell className="h-4 w-4" /> עדכונים ראשונים
+              </span>
+              <Link href="/client/updates" className="text-sm font-normal text-primary hover:underline">
+                כל העדכונים
+              </Link>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {recentNotifications.length === 0 && <EmptyState icon={Bell} message="עדיין אין עדכונים" compact />}
+            {recentNotifications.map((notification) => (
+              <div
+                key={notification.id}
+                className={`rounded-md border p-2 text-sm ${!notification.isRead ? "border-primary/40 bg-primary/5" : ""}`}
+              >
+                <p>{notification.message}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{formatDateTime(notification.createdAt)}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </FadeIn>
     </div>
   );
 }

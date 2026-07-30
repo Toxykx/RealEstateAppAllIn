@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { startOfDay, endOfDay } from "date-fns";
-import { Plus, UserPlus, Building, Users } from "lucide-react";
+import { Plus, UserPlus, Building, Users, KeyRound, MessageSquareText } from "lucide-react";
 import { prisma, withDbRetry } from "@/lib/prisma";
 import { requireUser, agentScope } from "@/lib/authz";
 import { getAgentStats } from "@/lib/stats";
@@ -9,6 +9,9 @@ import { QuickActions } from "@/components/quick-actions";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { FadeIn } from "@/components/motion/fade-in";
+import { StaggerList, StaggerItem } from "@/components/motion/stagger-list";
+import { AnimatedNumber } from "@/components/motion/animated-number";
 import { formatDateTime, LISTING_STATUS_LABELS } from "@/lib/format";
 
 export default async function AgentDashboardPage() {
@@ -81,30 +84,42 @@ export default async function AgentDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">שלום {user.name?.split(" ")[0]}</h1>
+      <FadeIn>
+        <h1 className="text-2xl font-bold">שלום {user.name?.split(" ")[0]}</h1>
+      </FadeIn>
 
-      <QuickActions actions={quickActions} />
+      <FadeIn delay={0.05}>
+        <QuickActions actions={quickActions} />
+      </FadeIn>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {user.role === "MANAGER" ? "סה״כ נכסים" : "הנכסים שלי"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-3xl font-bold">{propertyCount}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {user.role === "MANAGER" ? "סה״כ לקוחות" : "הלקוחות שלי"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-3xl font-bold">{clientCount}</CardContent>
-        </Card>
-      </div>
+      <StaggerList className="grid gap-4 sm:grid-cols-2">
+        <StaggerItem>
+          <Card className="transition-shadow hover:shadow-md">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {user.role === "MANAGER" ? "סה״כ נכסים" : "הנכסים שלי"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-3xl font-bold">
+              <AnimatedNumber value={propertyCount} />
+            </CardContent>
+          </Card>
+        </StaggerItem>
+        <StaggerItem>
+          <Card className="transition-shadow hover:shadow-md">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {user.role === "MANAGER" ? "סה״כ לקוחות" : "הלקוחות שלי"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-3xl font-bold">
+              <AnimatedNumber value={clientCount} />
+            </CardContent>
+          </Card>
+        </StaggerItem>
+      </StaggerList>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <FadeIn delay={0.1} className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">לוח הזמנים של היום</CardTitle>
@@ -146,9 +161,9 @@ export default async function AgentDashboardPage() {
             ))}
           </CardContent>
         </Card>
-      </div>
+      </FadeIn>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <FadeIn delay={0.15} className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-lg">הנכסים הפעילים שלי</CardTitle>
@@ -178,7 +193,7 @@ export default async function AgentDashboardPage() {
             <CardTitle className="text-lg">מפתחות אצלי ({keysHeld.length})</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {keysHeld.length === 0 && <p className="text-sm text-muted-foreground">אין מפתחות אצלך כרגע.</p>}
+            {keysHeld.length === 0 && <EmptyState icon={KeyRound} message="אין מפתחות אצלך כרגע" compact />}
             {keysHeld.map((property) => (
               <Link
                 key={property.id}
@@ -190,9 +205,9 @@ export default async function AgentDashboardPage() {
             ))}
           </CardContent>
         </Card>
-      </div>
+      </FadeIn>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <FadeIn delay={0.2} className="grid gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">סטטיסטיקה שבועית</CardTitle>
@@ -212,7 +227,9 @@ export default async function AgentDashboardPage() {
             <CardTitle className="text-lg">עדכונים אחרונים</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {recentUpdates.length === 0 && <p className="text-sm text-muted-foreground">עדיין לא פורסמו עדכונים.</p>}
+            {recentUpdates.length === 0 && (
+              <EmptyState icon={MessageSquareText} message="עדיין לא פורסמו עדכונים" compact />
+            )}
             {recentUpdates.map((update) => (
               <Link
                 key={update.id}
@@ -235,7 +252,7 @@ export default async function AgentDashboardPage() {
             <ActivityLogList logs={ownActivity} showProperty />
           </CardContent>
         </Card>
-      </div>
+      </FadeIn>
     </div>
   );
 }

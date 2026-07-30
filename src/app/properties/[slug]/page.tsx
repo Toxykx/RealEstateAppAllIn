@@ -1,9 +1,9 @@
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Bath, BedDouble, MapPin, Phone, Ruler } from "lucide-react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { ContactForm } from "@/components/contact-form";
+import { PropertyGallery } from "@/components/property/property-gallery";
 import { WhatsAppButton } from "@/components/property/whatsapp-button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,8 +29,6 @@ export default async function PropertyDetailPage({
     agentId: property.agentId,
   }).catch(() => {});
 
-  const gallery = property.images.length > 0 ? property.images : [];
-
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
@@ -46,24 +44,7 @@ export default async function PropertyDetailPage({
 
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             <div className="space-y-6 lg:col-span-2">
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {gallery.length === 0 ? (
-                  <div className="col-span-full flex aspect-video items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                    אין תמונות עדיין
-                  </div>
-                ) : (
-                  gallery.map((image, i) => (
-                    <div
-                      key={image.id}
-                      className={`relative overflow-hidden rounded-lg bg-muted ${
-                        i === 0 ? "col-span-2 aspect-video sm:col-span-3" : "aspect-square"
-                      }`}
-                    >
-                      <Image src={image.url} alt={property.title} fill className="object-cover" />
-                    </div>
-                  ))
-                )}
-              </div>
+              <PropertyGallery images={property.images} alt={property.title} />
 
               <Card>
                 <CardHeader>

@@ -36,6 +36,8 @@ import { WeeklyActivityChart } from "@/components/charts/weekly-activity-chart";
 import { MonthlyActivityChart } from "@/components/charts/monthly-activity-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { FadeIn } from "@/components/motion/fade-in";
+import { StaggerList, StaggerItem } from "@/components/motion/stagger-list";
 import { LISTING_STATUS_LABELS } from "@/lib/format";
 
 export default async function ManagerDashboardPage() {
@@ -97,26 +99,32 @@ export default async function ManagerDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <DailyBriefing
-        name={user.name?.split(" ")[0] ?? ""}
-        visitsToday={briefingCore.visitsToday}
-        keysOutstanding={briefingCore.keysOutstanding}
-        newClientsThisWeek={briefingCore.newClientsThisWeek}
-        dealsClosedYesterday={briefingCore.dealsClosedYesterday}
-        staleProperties={staleProperties}
-        missingImages={missingImages}
-        openInquiries={openInquiries}
-      />
+      <FadeIn>
+        <DailyBriefing
+          name={user.name?.split(" ")[0] ?? ""}
+          visitsToday={briefingCore.visitsToday}
+          keysOutstanding={briefingCore.keysOutstanding}
+          newClientsThisWeek={briefingCore.newClientsThisWeek}
+          dealsClosedYesterday={briefingCore.dealsClosedYesterday}
+          staleProperties={staleProperties}
+          missingImages={missingImages}
+          openInquiries={openInquiries}
+        />
+      </FadeIn>
 
-      <QuickActions actions={quickActions} />
+      <FadeIn delay={0.05}>
+        <QuickActions actions={quickActions} />
+      </FadeIn>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <StaggerList className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {kpiCards.map((stat) => (
-          <KpiCard key={stat.label} label={stat.label} value={stat.value} icon={stat.icon} />
+          <StaggerItem key={stat.label}>
+            <KpiCard label={stat.label} value={stat.value} icon={stat.icon} />
+          </StaggerItem>
         ))}
-      </div>
+      </StaggerList>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <FadeIn delay={0.1} className="grid gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">התפלגות נכסים</CardTitle>
@@ -134,9 +142,9 @@ export default async function ManagerDashboardPage() {
             <AgentPerformanceBar data={agentPerformance} />
           </CardContent>
         </Card>
-      </div>
+      </FadeIn>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <FadeIn delay={0.15} className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">פעילות שבועית</CardTitle>
@@ -154,9 +162,9 @@ export default async function ManagerDashboardPage() {
             <MonthlyActivityChart data={monthlyActivity} />
           </CardContent>
         </Card>
-      </div>
+      </FadeIn>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <FadeIn delay={0.2} className="grid gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">התראות</CardTitle>
@@ -206,16 +214,18 @@ export default async function ManagerDashboardPage() {
             ))}
           </CardContent>
         </Card>
-      </div>
+      </FadeIn>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">פעילות משרד אחרונה</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ActivityLogList logs={recentActivity} showProperty />
-        </CardContent>
-      </Card>
+      <FadeIn delay={0.25}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">פעילות משרד אחרונה</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ActivityLogList logs={recentActivity} showProperty />
+          </CardContent>
+        </Card>
+      </FadeIn>
     </div>
   );
 }
