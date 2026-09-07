@@ -203,6 +203,9 @@ export default async function AgentDashboardPage() {
                 {property.title}
               </Link>
             ))}
+            <Link href="/agent/keys" className="block text-sm text-primary hover:underline">
+              לוח המפתחות המלא &larr;
+            </Link>
           </CardContent>
         </Card>
       </FadeIn>

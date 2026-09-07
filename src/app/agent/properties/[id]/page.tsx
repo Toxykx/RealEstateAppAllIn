@@ -62,7 +62,7 @@ export default async function PropertyDetailPage({
   const user = await requireUser(["AGENT", "MANAGER"]);
 
   const property = await prisma.property.findFirst({
-    where: { id, ...agentScope(user, "agentId") },
+    where: { id },
     include: {
       images: { orderBy: { sortOrder: "asc" } },
       documents: { orderBy: { createdAt: "desc" } },
@@ -79,17 +79,24 @@ export default async function PropertyDetailPage({
   });
   if (!property) notFound();
 
-  const scopedClients = await prisma.user.findMany({
-    where: { role: "CLIENT", ...agentScope(user, "managingAgentId") },
-    select: { id: true, name: true },
-    orderBy: { name: "asc" },
-  });
+  // Any AGENT/MANAGER can view a property (e.g. they're holding its key —
+  // see the shared keys board), but only the responsible agent or a manager
+  // can edit it.
+  const canEdit = user.role === "MANAGER" || property.agentId === user.id;
+
+  const scopedClients = canEdit
+    ? await prisma.user.findMany({
+        where: { role: "CLIENT", ...agentScope(user, "managingAgentId") },
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
+      })
+    : [];
 
   // The current owner may be managed by a different agent than the one
   // viewing this page (ownership isn't tied to managingAgentId) — make sure
   // they still appear as a selectable, correctly-labeled option.
   const clients =
-    property.ownerClient && !scopedClients.some((c) => c.id === property.ownerClient!.id)
+    canEdit && property.ownerClient && !scopedClients.some((c) => c.id === property.ownerClient!.id)
       ? [...scopedClients, { id: property.ownerClient.id, name: property.ownerClient.name }].sort((a, b) =>
           a.name.localeCompare(b.name),
         )
@@ -148,73 +155,104 @@ export default async function PropertyDetailPage({
         {/* Basic info */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-lg">עריכת נכס</CardTitle>
+            <CardTitle className="text-lg">{canEdit ? "עריכת נכס" : "פרטי נכס"}</CardTitle>
           </CardHeader>
           <CardContent>
-            <ActionForm action={boundUpdateProperty} className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="title" required>כותרת</Label>
-                  <Input id="title" name="title" defaultValue={property.title} required />
+            {canEdit ? (
+              <ActionForm action={boundUpdateProperty} className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="title" required>כותרת</Label>
+                    <Input id="title" name="title" defaultValue={property.title} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="city" required>עיר</Label>
+                    <Input id="city" name="city" defaultValue={property.city} required />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="city" required>עיר</Label>
-                  <Input id="city" name="city" defaultValue={property.city} required />
+                  <Label htmlFor="addressLine" required>כתובת</Label>
+                  <Input id="addressLine" name="addressLine" defaultValue={property.addressLine} required />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description" required>תיאור</Label>
+                  <TextareaWithCounter id="description" name="description" rows={4} maxLength={1000} defaultValue={property.description} required />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="price" required>מחיר</Label>
+                    <Input id="price" name="price" type="number" defaultValue={property.price.toString()} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="currency" required>מטבע</Label>
+                    <Input id="currency" name="currency" defaultValue={property.currency} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="propertyType" required>סוג נכס</Label>
+                    <Select
+                      name="propertyType"
+                      defaultValue={property.propertyType}
+                      items={Object.entries(PROPERTY_TYPE_LABELS).map(([value, label]) => ({ value, label }))}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(PROPERTY_TYPE_LABELS).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="bedrooms">חדרים</Label>
+                    <Input id="bedrooms" name="bedrooms" type="number" defaultValue={property.bedrooms ?? ""} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bathrooms">חדרי רחצה</Label>
+                    <Input id="bathrooms" name="bathrooms" type="number" defaultValue={property.bathrooms ?? ""} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="areaSqm">שטח (מ״ר)</Label>
+                    <Input id="areaSqm" name="areaSqm" type="number" defaultValue={property.areaSqm ?? ""} />
+                  </div>
+                </div>
+                <SubmitButton pendingLabel="שומר...">שמירת פרטים</SubmitButton>
+              </ActionForm>
+            ) : (
+              <div className="space-y-4 text-sm">
+                <p className="whitespace-pre-line leading-relaxed">{property.description}</p>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div>
+                    <p className="text-muted-foreground">מחיר</p>
+                    <p className="font-medium">{property.price.toString()} {property.currency}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">סוג נכס</p>
+                    <p className="font-medium">{PROPERTY_TYPE_LABELS[property.propertyType]}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">שטח</p>
+                    <p className="font-medium">{property.areaSqm ? `${property.areaSqm} מ״ר` : "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">חדרים</p>
+                    <p className="font-medium">{property.bedrooms ?? "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">חדרי רחצה</p>
+                    <p className="font-medium">{property.bathrooms ?? "—"}</p>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  רק המתווך האחראי או מנהל יכולים לערוך את פרטי הנכס.
+                </p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="addressLine" required>כתובת</Label>
-                <Input id="addressLine" name="addressLine" defaultValue={property.addressLine} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description" required>תיאור</Label>
-                <TextareaWithCounter id="description" name="description" rows={4} maxLength={1000} defaultValue={property.description} required />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="space-y-2">
-                  <Label htmlFor="price" required>מחיר</Label>
-                  <Input id="price" name="price" type="number" defaultValue={property.price.toString()} required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="currency" required>מטבע</Label>
-                  <Input id="currency" name="currency" defaultValue={property.currency} required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="propertyType" required>סוג נכס</Label>
-                  <Select
-                    name="propertyType"
-                    defaultValue={property.propertyType}
-                    items={Object.entries(PROPERTY_TYPE_LABELS).map(([value, label]) => ({ value, label }))}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(PROPERTY_TYPE_LABELS).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="space-y-2">
-                  <Label htmlFor="bedrooms">חדרים</Label>
-                  <Input id="bedrooms" name="bedrooms" type="number" defaultValue={property.bedrooms ?? ""} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bathrooms">חדרי רחצה</Label>
-                  <Input id="bathrooms" name="bathrooms" type="number" defaultValue={property.bathrooms ?? ""} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="areaSqm">שטח (מ״ר)</Label>
-                  <Input id="areaSqm" name="areaSqm" type="number" defaultValue={property.areaSqm ?? ""} />
-                </div>
-              </div>
-              <SubmitButton pendingLabel="שומר...">שמירת פרטים</SubmitButton>
-            </ActionForm>
+            )}
           </CardContent>
         </Card>
 
@@ -225,25 +263,29 @@ export default async function PropertyDetailPage({
               <CardTitle className="text-lg">סטטוס פרסום</CardTitle>
             </CardHeader>
             <CardContent>
-              <ActionForm action={boundListingStatus} className="flex gap-2">
-                <Select
-                  name="listingStatus"
-                  defaultValue={property.listingStatus}
-                  items={Object.entries(LISTING_STATUS_LABELS).map(([value, label]) => ({ value, label }))}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(LISTING_STATUS_LABELS).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <SubmitButton pendingLabel="שומר...">שמירה</SubmitButton>
-              </ActionForm>
+              {canEdit ? (
+                <ActionForm action={boundListingStatus} className="flex gap-2">
+                  <Select
+                    name="listingStatus"
+                    defaultValue={property.listingStatus}
+                    items={Object.entries(LISTING_STATUS_LABELS).map(([value, label]) => ({ value, label }))}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(LISTING_STATUS_LABELS).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <SubmitButton pendingLabel="שומר...">שמירה</SubmitButton>
+                </ActionForm>
+              ) : (
+                <Badge variant="secondary">{LISTING_STATUS_LABELS[property.listingStatus]}</Badge>
+              )}
             </CardContent>
           </Card>
 
@@ -253,21 +295,27 @@ export default async function PropertyDetailPage({
             </CardHeader>
             <CardContent className="space-y-4">
               <DealProgress currentStageIndex={currentStageIndex} />
-              <ActionForm action={boundDealStage} className="flex gap-2">
-                <Select name="dealStage" defaultValue={property.dealStage} items={[...DEAL_STAGE_STEPS]}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DEAL_STAGE_STEPS.map((step) => (
-                      <SelectItem key={step.value} value={step.value}>
-                        {step.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <SubmitButton pendingLabel="מעדכן...">עדכון</SubmitButton>
-              </ActionForm>
+              {canEdit ? (
+                <ActionForm action={boundDealStage} className="flex gap-2">
+                  <Select name="dealStage" defaultValue={property.dealStage} items={[...DEAL_STAGE_STEPS]}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DEAL_STAGE_STEPS.map((step) => (
+                        <SelectItem key={step.value} value={step.value}>
+                          {step.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <SubmitButton pendingLabel="מעדכן...">עדכון</SubmitButton>
+                </ActionForm>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  שלב נוכחי: <span className="text-foreground">{DEAL_STAGE_STEPS.find((s) => s.value === property.dealStage)?.label ?? property.dealStage}</span>
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -276,26 +324,36 @@ export default async function PropertyDetailPage({
               <CardTitle className="text-lg">לקוח מוקצה (בעלים)</CardTitle>
             </CardHeader>
             <CardContent>
-              <ActionForm action={boundAssign} className="flex gap-2">
-                <Select
-                  name="clientId"
-                  defaultValue={property.ownerClientId ?? "none"}
-                  items={[{ value: "none", label: "לא מוקצה" }, ...clients.map((c) => ({ value: c.id, label: c.name }))]}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="לא מוקצה" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">לא מוקצה</SelectItem>
-                    {clients.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <SubmitButton pendingLabel="שומר...">שמירה</SubmitButton>
-              </ActionForm>
+              {canEdit ? (
+                <ActionForm action={boundAssign} className="flex gap-2">
+                  <Select
+                    name="clientId"
+                    defaultValue={property.ownerClientId ?? "none"}
+                    items={[{ value: "none", label: "לא מוקצה" }, ...clients.map((c) => ({ value: c.id, label: c.name }))]}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="לא מוקצה" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">לא מוקצה</SelectItem>
+                      {clients.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <SubmitButton pendingLabel="שומר...">שמירה</SubmitButton>
+                </ActionForm>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {property.ownerClient ? (
+                    <span className="text-foreground">{property.ownerClient.name}</span>
+                  ) : (
+                    "לא מוקצה"
+                  )}
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -390,24 +448,20 @@ export default async function PropertyDetailPage({
           <PropertyGallery
             images={property.images}
             alt={property.title}
-            renderOverlay={(image) => (
-              <ActionForm action={deleteImageAction.bind(null, property.id, image.id)}>
-                <SubmitButton
-                  size="icon-sm"
-                  variant="destructive"
-                  aria-label="מחיקת תמונה"
-                  className="absolute end-1 top-1 opacity-0 transition-opacity group-hover:opacity-100"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </SubmitButton>
-              </ActionForm>
-            )}
+            deleteImageActions={
+              canEdit
+                ? Object.fromEntries(
+                    property.images.map((image) => [image.id, deleteImageAction.bind(null, property.id, image.id)]),
+                  )
+                : undefined
+            }
           />
-          <ActionForm action={boundUploadImage} className="flex flex-wrap items-end gap-2">
-            <Input type="file" name="file" accept="image/*" required className="max-w-xs" />
-            <SubmitButton pendingLabel="מעלה...">העלאת תמונה</SubmitButton>
-          </ActionForm>
+          {canEdit && (
+            <ActionForm action={boundUploadImage} className="flex flex-wrap items-end gap-2">
+              <Input type="file" name="file" accept="image/*" required className="max-w-xs" />
+              <SubmitButton pendingLabel="מעלה...">העלאת תמונה</SubmitButton>
+            </ActionForm>
+          )}
         </CardContent>
       </Card>
 
@@ -431,17 +485,20 @@ export default async function PropertyDetailPage({
                   <Badge variant="outline">{DOC_TYPE_LABELS[doc.docType] ?? doc.docType}</Badge>
                   {doc.visibleToClient && <Badge variant="secondary">גלוי ללקוח</Badge>}
                 </div>
-                <ActionForm action={deleteDocumentAction.bind(null, property.id, doc.id)}>
-                  <SubmitButton size="icon-sm" variant="ghost" aria-label="מחיקת מסמך">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </SubmitButton>
-                </ActionForm>
+                {canEdit && (
+                  <ActionForm action={deleteDocumentAction.bind(null, property.id, doc.id)}>
+                    <SubmitButton size="icon-sm" variant="ghost" aria-label="מחיקת מסמך">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </SubmitButton>
+                  </ActionForm>
+                )}
               </li>
             ))}
             {property.documents.length === 0 && (
               <EmptyState icon={FileText} message="עדיין לא הועלו מסמכים" compact />
             )}
           </ul>
+          {canEdit && (
           <ActionForm
             action={boundUploadDoc}
             className="flex flex-wrap items-end gap-2"
@@ -471,6 +528,7 @@ export default async function PropertyDetailPage({
             </label>
             <SubmitButton pendingLabel="מעלה...">העלאת מסמך</SubmitButton>
           </ActionForm>
+          )}
         </CardContent>
       </Card>
 

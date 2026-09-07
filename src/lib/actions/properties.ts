@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/authz";
+import { requireUser, requirePropertyOwner } from "@/lib/authz";
 import { DEAL_STAGE_STEPS, LISTING_STATUS_LABELS } from "@/lib/format";
 import { logActivity } from "@/lib/activity-log";
 import type { ActionResult } from "@/components/action-form";
@@ -70,6 +70,7 @@ export async function createProperty(_prevState: { error?: string } | undefined,
 
 export async function updateProperty(propertyId: string, formData: FormData): Promise<ActionResult> {
   const user = await requireUser(["AGENT", "MANAGER"]);
+  await requirePropertyOwner(user, propertyId);
 
   const parsed = propertySchema.safeParse({
     title: formData.get("title"),
@@ -112,6 +113,7 @@ export async function updateProperty(propertyId: string, formData: FormData): Pr
 
 export async function assignPropertyToClient(propertyId: string, formData: FormData): Promise<ActionResult> {
   const user = await requireUser(["AGENT", "MANAGER"]);
+  await requirePropertyOwner(user, propertyId);
   const clientId = formData.get("clientId") as string;
   const clientIdValue = clientId && clientId !== "none" ? clientId : null;
 
@@ -168,6 +170,7 @@ export async function reassignPropertyAgent(propertyId: string, formData: FormDa
 
 export async function changeListingStatus(propertyId: string, formData: FormData): Promise<ActionResult> {
   const user = await requireUser(["AGENT", "MANAGER"]);
+  await requirePropertyOwner(user, propertyId);
   const listingStatus = formData.get("listingStatus") as string;
 
   const before = await prisma.property.findUnique({ where: { id: propertyId } });
@@ -198,6 +201,7 @@ export async function changeListingStatus(propertyId: string, formData: FormData
 
 export async function changeDealStage(propertyId: string, formData: FormData): Promise<ActionResult> {
   const user = await requireUser(["AGENT", "MANAGER"]);
+  await requirePropertyOwner(user, propertyId);
   const dealStage = formData.get("dealStage") as DealStage;
 
   const property = await prisma.property.update({

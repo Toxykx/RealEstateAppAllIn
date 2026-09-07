@@ -88,12 +88,14 @@ function specsFor(type: PropertyType, i: number) {
   }
 }
 
+// Thresholds scaled proportionally from the original 20-property loop to the
+// current 28-property loop, so the same mix of statuses/stages is preserved.
 function listingFor(i: number, dealType: DealType) {
-  if (i <= 10) return { listingStatus: ListingStatus.AVAILABLE, dealStage: [DealStage.PHOTOS_COMPLETED, DealStage.PUBLISHED, DealStage.VISITS][i % 3] };
-  if (i <= 14) return { listingStatus: ListingStatus.IN_PROGRESS, dealStage: i % 2 === 0 ? DealStage.VISITS : DealStage.NEGOTIATION };
-  if (i <= 16) return { listingStatus: dealType === "RENT" ? ListingStatus.RENTED : ListingStatus.SOLD, dealStage: DealStage.SOLD };
-  if (i === 17) return { listingStatus: ListingStatus.DRAFT, dealStage: DealStage.CONTRACT_SIGNED };
-  if (i === 18) return { listingStatus: ListingStatus.ARCHIVED, dealStage: DealStage.SOLD };
+  if (i <= 15) return { listingStatus: ListingStatus.AVAILABLE, dealStage: [DealStage.PHOTOS_COMPLETED, DealStage.PUBLISHED, DealStage.VISITS][i % 3] };
+  if (i <= 21) return { listingStatus: ListingStatus.IN_PROGRESS, dealStage: i % 2 === 0 ? DealStage.VISITS : DealStage.NEGOTIATION };
+  if (i <= 24) return { listingStatus: dealType === "RENT" ? ListingStatus.RENTED : ListingStatus.SOLD, dealStage: DealStage.SOLD };
+  if (i === 25) return { listingStatus: ListingStatus.DRAFT, dealStage: DealStage.CONTRACT_SIGNED };
+  if (i === 26) return { listingStatus: ListingStatus.ARCHIVED, dealStage: DealStage.SOLD };
   return { listingStatus: ListingStatus.AVAILABLE, dealStage: DealStage.PUBLISHED };
 }
 
@@ -108,6 +110,16 @@ const UPDATE_MESSAGES = [
   "התקבל אישור עקרוני ממשרד המשכנתאות של הקונה.",
 ];
 
+// Flattens e.g. [14, 9, 5] into [0,0,...(14),1,1,...(9),2,2,...(5)] — used to
+// assign an uneven number of clients/properties to agents[0..2] in order.
+function expandCounts(counts: number[]): number[] {
+  const result: number[] = [];
+  counts.forEach((count, agentIndex) => {
+    for (let k = 0; k < count; k++) result.push(agentIndex);
+  });
+  return result;
+}
+
 async function main() {
   await resetDemoData();
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
@@ -116,6 +128,8 @@ async function main() {
     data: { name: "דנה כהן", email: "manager@horizonrealty.demo", passwordHash, role: Role.MANAGER, phone: "+972-50-1000001" },
   });
 
+  // [יוסי לוי (senior), נועה מזרחי (mid-level), דוד פרץ (newer)] — the
+  // uneven workload distribution below is keyed to this exact order.
   const agentNames = ["יוסי לוי", "נועה מזרחי", "דוד פרץ"];
   const agents: User[] = [];
   for (let i = 0; i < agentNames.length; i++) {
@@ -132,19 +146,28 @@ async function main() {
     );
   }
 
-  const clientFirstNames = ["אבי", "מיכל", "תומר", "שירה", "רון", "טליה", "עידן", "הילה", "גיא", "קרן"];
-  const clientLastNames = ["כהן", "לוי", "בר", "אזולאי", "דהן", "גבאי", "פרץ", "ביטון", "אוחיון", "מזרחי"];
+  const CLIENT_NAMES: [string, string][] = [
+    ["אבי", "כהן"], ["מיכל", "לוי"], ["תומר", "בר"], ["שירה", "אזולאי"], ["רון", "דהן"],
+    ["טליה", "גבאי"], ["עידן", "פרץ"], ["הילה", "ביטון"], ["גיא", "אוחיון"], ["קרן", "מזרחי"],
+    ["אורי", "שפירא"], ["ליאת", "אשכנזי"], ["נדב", "סבן"], ["יעל", "פרידמן"], ["אלון", "קפלן"],
+    ["מאיה", "חדד"], ["עומר", "וקנין"], ["שני", "מלכה"],
+  ];
+  // Yossi manages 9 clients, Noa 6, David 3 — 18 total.
+  const CLIENT_AGENT_COUNTS = [9, 6, 3];
+  const clientAgentIndex = expandCounts(CLIENT_AGENT_COUNTS);
+
   const clients: User[] = [];
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < CLIENT_NAMES.length; i++) {
+    const [first, last] = CLIENT_NAMES[i];
     clients.push(
       await prisma.user.create({
         data: {
-          name: `${clientFirstNames[i]} ${clientLastNames[i]}`,
+          name: `${first} ${last}`,
           email: `client${i + 1}@example.com`,
           passwordHash,
           role: Role.CLIENT,
           phone: `+972-50-200000${i}`,
-          managingAgentId: agents[i % agents.length].id,
+          managingAgentId: agents[clientAgentIndex[i]].id,
         },
       }),
     );
@@ -153,11 +176,15 @@ async function main() {
   const activityRows: Prisma.ActivityLogCreateManyInput[] = [];
   const properties: Property[] = [];
 
-  for (let i = 0; i < 20; i++) {
+  // Yossi gets 14 properties, Noa 9, David 5 — 28 total.
+  const PROPERTY_AGENT_COUNTS = [14, 9, 5];
+  const propertyAgentIndex = expandCounts(PROPERTY_AGENT_COUNTS);
+
+  for (let i = 0; i < propertyAgentIndex.length; i++) {
     const type = PROPERTY_TYPES[i % PROPERTY_TYPES.length];
     const dealType = i % 3 === 0 ? DealType.RENT : DealType.SALE;
     const { listingStatus, dealStage } = listingFor(i, dealType);
-    const agent = agents[i % agents.length];
+    const agent = agents[propertyAgentIndex[i]];
     const owner = i % 4 === 3 ? null : clients[i % clients.length];
     const city = CITIES[i % CITIES.length];
     const street = STREETS[i % STREETS.length];
@@ -256,7 +283,7 @@ async function main() {
     }
   }
 
-  // ~50 PropertyUpdate rows, spread across properties
+  // PropertyUpdate rows, spread across properties
   const updateRows: Prisma.PropertyUpdateCreateManyInput[] = [];
   properties.forEach((property, i) => {
     const count = 1 + (i % 4);
@@ -281,7 +308,7 @@ async function main() {
   });
   await prisma.propertyUpdate.createMany({ data: updateRows });
 
-  // ~30 Visit rows
+  // Visit rows
   const visitRows: Prisma.VisitCreateManyInput[] = [];
   properties.forEach((property, i) => {
     const count = 1 + (i % 2);
@@ -312,15 +339,85 @@ async function main() {
   });
   await prisma.visit.createMany({ data: visitRows });
 
-  // A few standalone calls/meetings not tied to a specific property
-  clients.slice(0, 6).forEach((client, i) => {
-    const agent = agents[i % agents.length];
-    activityRows.push({
-      activityType: i % 2 === 0 ? ActivityType.CALL_LOGGED : ActivityType.MEETING_LOGGED,
-      description: i % 2 === 0 ? `שיחת מעקב עם ${client.name}.` : `פגישה במשרד עם ${client.name}.`,
-      agentId: agent.id,
-      clientId: client.id,
-      createdAt: daysAgo(i + 1),
+  // Realistic call/meeting activity history per agent, reflecting seniority:
+  // Yossi (senior) shows activity almost every week across ~90 days, Noa
+  // (mid-level) has moderate, slightly less consistent coverage over ~70
+  // days, and David (newer) is concentrated in just the last few weeks —
+  // as if he only recently started.
+  const CALL_TEMPLATES: ((clientName?: string) => string)[] = [
+    (c) => (c ? `שיחת מעקב עם ${c} לגבי התקדמות התהליך.` : "שיחת מעקב עם לקוח בנוגע לתהליך הרכישה."),
+    (c) => (c ? `שיחה עם ${c} לתיאום ביקור בנכס.` : "שיחה לתיאום ביקור בנכס."),
+    (c) => (c ? `עדכון טלפוני ל${c} לגבי הצעת מחיר שהוגשה.` : "עדכון טלפוני ללקוח לגבי הצעת מחיר שהוגשה."),
+    (c) => (c ? `שיחה עם ${c} לבירור צרכים ותקציב.` : "שיחה לבירור צרכים ותקציב."),
+    () => "שיחה נכנסת ממתעניין חדש שהשאיר פרטים באתר.",
+    (c) => (c ? `סבב טלפונים יזום ל${c} לבדיקת שביעות רצון.` : "סבב טלפונים יזום ללקוחות קיימים."),
+    (c) => (c ? `שיחה עם ${c} לגבי לוחות זמנים לחתימת חוזה.` : "שיחה לגבי לוחות זמנים לחתימת חוזה."),
+  ];
+  const MEETING_TEMPLATES: ((clientName?: string) => string)[] = [
+    (c) => (c ? `פגישה במשרד עם ${c} לחתימה על מסמכים.` : "פגישה במשרד לחתימה על מסמכים."),
+    (c) => (c ? `פגישת ייעוץ עם ${c} לגבי אפשרויות מימון ומשכנתא.` : "פגישת ייעוץ לגבי אפשרויות מימון ומשכנתא."),
+    (c) => (c ? `פגישה בנכס עם ${c} לסיור מודרך.` : "פגישה בנכס לסיור מודרך."),
+    (c) => (c ? `פגישת סיכום עם ${c} לקראת סגירת עסקה.` : "פגישת סיכום לקראת סגירת עסקה."),
+    () => "פגישת צוות משרדית לסקירת נכסים פעילים.",
+    (c) => (c ? `פגישה ראשונית עם ${c} להיכרות וסקירת צרכים.` : "פגישה ראשונית עם לקוח חדש להיכרות וסקירת צרכים."),
+  ];
+
+  function pick<T>(arr: T[]): T {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  // Returns `count` "days ago" offsets, cycled evenly across the given week
+  // indices (week 0 = the most recent 7 days) with a random day within each
+  // week — gives weekly coverage rather than pure random clustering.
+  function weeklySpread(count: number, activeWeeks: number[]): number[] {
+    const offsets: number[] = [];
+    for (let k = 0; k < count; k++) {
+      const week = activeWeeks[k % activeWeeks.length];
+      const dayInWeek = Math.floor(Math.random() * 7);
+      offsets.push(week * 7 + dayInWeek);
+    }
+    return offsets;
+  }
+
+  const clientsByAgent = new Map<string, User[]>(agents.map((a) => [a.id, [] as User[]]));
+  clients.forEach((c) => {
+    if (c.managingAgentId) clientsByAgent.get(c.managingAgentId)?.push(c);
+  });
+
+  // Sometimes reference one of the agent's own clients by name; sometimes
+  // leave it generic, for natural-looking variety.
+  function maybeClient(agentId: string): User | undefined {
+    const pool = clientsByAgent.get(agentId) ?? [];
+    if (pool.length === 0 || Math.random() < 0.3) return undefined;
+    return pick(pool);
+  }
+
+  const AGENT_ACTIVITY_PLAN: { agent: User; calls: number; meetings: number; activeWeeks: number[] }[] = [
+    { agent: agents[0], calls: 40, meetings: 15, activeWeeks: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] }, // יוסי — senior, active almost every week over ~90 days
+    { agent: agents[1], calls: 20, meetings: 8, activeWeeks: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] }, // נועה — mid-level, moderate coverage over ~70 days
+    { agent: agents[2], calls: 8, meetings: 3, activeWeeks: [0, 1, 2, 3] }, // דוד — newer, concentrated in the last ~4 weeks
+  ];
+
+  AGENT_ACTIVITY_PLAN.forEach(({ agent, calls, meetings, activeWeeks }) => {
+    weeklySpread(calls, activeWeeks).forEach((offset) => {
+      const client = maybeClient(agent.id);
+      activityRows.push({
+        activityType: ActivityType.CALL_LOGGED,
+        description: pick(CALL_TEMPLATES)(client?.name),
+        agentId: agent.id,
+        clientId: client?.id,
+        createdAt: daysAgo(offset),
+      });
+    });
+    weeklySpread(meetings, activeWeeks).forEach((offset) => {
+      const client = maybeClient(agent.id);
+      activityRows.push({
+        activityType: ActivityType.MEETING_LOGGED,
+        description: pick(MEETING_TEMPLATES)(client?.name),
+        agentId: agent.id,
+        clientId: client?.id,
+        createdAt: daysAgo(offset),
+      });
     });
   });
 
@@ -335,7 +432,7 @@ async function main() {
   });
   await prisma.favorite.createMany({ data: favoriteRows, skipDuplicates: true });
 
-  // ~20 Notifications for clients with owned properties
+  // Notifications for clients with owned properties
   const notificationRows: Prisma.NotificationCreateManyInput[] = [];
   const ownedProps = properties.filter((p) => p.ownerClientId);
   ownedProps.forEach((property, i) => {
@@ -371,6 +468,21 @@ async function main() {
   console.log("סוכנים:", agents.map((a) => a.email).join(", "));
   console.log("לקוחות:", clients.map((c) => c.email).join(", "));
   console.log(`נוצרו ${properties.length} נכסים, ${updateRows.length} עדכונים, ${visitRows.length} ביקורים, ${activityRows.length} רשומות פעילות.`);
+
+  // Per-agent breakdown, verified against the actual DB state (not just the
+  // input constants above) so the uneven distribution can be confirmed.
+  console.log("\nפילוח לפי סוכן:");
+  for (const agent of agents) {
+    const [propertyCount, clientCount, callCount, meetingCount] = await Promise.all([
+      prisma.property.count({ where: { agentId: agent.id } }),
+      prisma.user.count({ where: { managingAgentId: agent.id, role: Role.CLIENT } }),
+      prisma.activityLog.count({ where: { agentId: agent.id, activityType: ActivityType.CALL_LOGGED } }),
+      prisma.activityLog.count({ where: { agentId: agent.id, activityType: ActivityType.MEETING_LOGGED } }),
+    ]);
+    console.log(
+      `- ${agent.name}: נכסים=${propertyCount}, לקוחות מנוהלים=${clientCount}, שיחות=${callCount}, פגישות=${meetingCount}`,
+    );
+  }
 }
 
 main()

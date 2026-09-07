@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import type { Role } from "@prisma/client";
 
 export class UnauthorizedError extends Error {
@@ -54,4 +55,24 @@ export function agentScope(
 ): Record<string, string> {
   if (user.role === "MANAGER") return {};
   return { [agentField]: user.id };
+}
+
+/**
+ * Throws unless the user is a Manager or the property's responsible agent.
+ * Use in write actions on a property so read-side access (any AGENT/MANAGER
+ * can view any property, e.g. to manage a key they're holding) never
+ * silently widens who can edit it.
+ */
+export async function requirePropertyOwner(
+  user: { id: string; role: Role },
+  propertyId: string,
+) {
+  if (user.role === "MANAGER") return;
+  const property = await prisma.property.findUnique({
+    where: { id: propertyId },
+    select: { agentId: true },
+  });
+  if (!property || property.agentId !== user.id) {
+    throw new ForbiddenError("אין הרשאה לערוך נכס זה");
+  }
 }

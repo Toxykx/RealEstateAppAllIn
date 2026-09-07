@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/authz";
+import { requireUser, requirePropertyOwner } from "@/lib/authz";
 import {
   deleteStoredFile,
   uploadPropertyDocument,
@@ -14,7 +14,8 @@ import { logActivity } from "@/lib/activity-log";
 import type { ActionResult } from "@/components/action-form";
 
 export async function uploadImageAction(propertyId: string, formData: FormData): Promise<ActionResult> {
-  await requireUser(["AGENT", "MANAGER"]);
+  const user = await requireUser(["AGENT", "MANAGER"]);
+  await requirePropertyOwner(user, propertyId);
 
   const file = formData.get("file") as File | null;
   if (!file || file.size === 0) {
@@ -39,7 +40,8 @@ export async function uploadImageAction(propertyId: string, formData: FormData):
 }
 
 export async function deleteImageAction(propertyId: string, imageId: string): Promise<ActionResult> {
-  await requireUser(["AGENT", "MANAGER"]);
+  const user = await requireUser(["AGENT", "MANAGER"]);
+  await requirePropertyOwner(user, propertyId);
 
   const image = await prisma.propertyImage.findUnique({ where: { id: imageId } });
   if (!image) return { success: false, message: "התמונה לא נמצאה" };
@@ -53,6 +55,7 @@ export async function deleteImageAction(propertyId: string, imageId: string): Pr
 
 export async function uploadDocumentAction(propertyId: string, formData: FormData): Promise<ActionResult> {
   const user = await requireUser(["AGENT", "MANAGER"]);
+  await requirePropertyOwner(user, propertyId);
 
   const file = formData.get("file") as File | null;
   if (!file || file.size === 0) {
@@ -102,7 +105,8 @@ export async function uploadDocumentAction(propertyId: string, formData: FormDat
 }
 
 export async function deleteDocumentAction(propertyId: string, documentId: string): Promise<ActionResult> {
-  await requireUser(["AGENT", "MANAGER"]);
+  const user = await requireUser(["AGENT", "MANAGER"]);
+  await requirePropertyOwner(user, propertyId);
 
   const doc = await prisma.propertyDocument.findUnique({ where: { id: documentId } });
   if (!doc) return { success: false, message: "המסמך לא נמצא" };

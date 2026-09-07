@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
-import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2, X, ZoomIn, ZoomOut } from "lucide-react";
+import { ActionForm, type ActionResult } from "@/components/action-form";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -12,11 +14,17 @@ type GalleryImage = { id: string; url: string; isCover?: boolean };
 export function PropertyGallery({
   images,
   alt,
-  renderOverlay,
+  deleteImageActions,
 }: {
   images: GalleryImage[];
   alt: string;
-  renderOverlay?: (image: GalleryImage, index: number) => React.ReactNode;
+  /**
+   * Per-image delete Server Actions, keyed by image id (e.g.
+   * `{ [image.id]: deleteImageAction.bind(null, propertyId, image.id) }`).
+   * Must be genuine bound Server Actions built server-side — a plain
+   * closure/render-prop can't cross the Server->Client boundary here.
+   */
+  deleteImageActions?: Record<string, (formData: FormData) => Promise<ActionResult>>;
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [zoomed, setZoomed] = useState(false);
@@ -88,7 +96,19 @@ export function PropertyGallery({
               className="object-cover transition-transform duration-300 group-hover:scale-105"
             />
             {image.isCover && <Badge className="absolute start-1 top-1">תמונת נושא</Badge>}
-            {renderOverlay?.(image, i)}
+            {deleteImageActions?.[image.id] && (
+              <ActionForm action={deleteImageActions[image.id]}>
+                <SubmitButton
+                  size="icon-sm"
+                  variant="destructive"
+                  aria-label="מחיקת תמונה"
+                  className="absolute end-1 top-1 opacity-0 transition-opacity group-hover:opacity-100"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </SubmitButton>
+              </ActionForm>
+            )}
           </div>
         ))}
       </div>

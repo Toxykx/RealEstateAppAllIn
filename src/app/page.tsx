@@ -7,6 +7,11 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { getPublicProperties } from "@/lib/properties";
 import { Search, Home } from "lucide-react";
 
+// Featured listings must always reflect live data, and this page shouldn't
+// need a DB connection at *build* time (a Supabase hiccup during a Vercel
+// build would otherwise fail the whole deploy) — render it per-request.
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const properties = await getPublicProperties();
   const featured = properties.slice(0, 6);
