@@ -45,6 +45,7 @@ export default async function AgentPropertiesPage({
     priceMax?: string;
     propertyType?: string;
     listingStatus?: string;
+    agentId?: string;
   }>;
 }) {
   const user = await requireUser(["AGENT", "MANAGER"]);
@@ -59,10 +60,15 @@ export default async function AgentPropertiesPage({
   const { city, street, priceMin, priceMax } = params;
   const propertyType = params.propertyType && params.propertyType !== "all" ? params.propertyType : undefined;
   const listingStatus = params.listingStatus && params.listingStatus !== "all" ? params.listingStatus : undefined;
-  const hasFilters = Boolean(city || street || priceMin || priceMax || propertyType || listingStatus);
+  // Only a manager can usefully filter by agent — a regular agent only ever
+  // sees their own properties via agentScope regardless.
+  const agentId =
+    user.role === "MANAGER" && params.agentId && params.agentId !== "all" ? params.agentId : undefined;
+  const hasFilters = Boolean(city || street || priceMin || priceMax || propertyType || listingStatus || agentId);
 
   const where: Prisma.PropertyWhereInput = {
     ...agentScope(user, "agentId"),
+    ...(agentId ? { agentId } : {}),
     ...(city ? { city: { contains: city, mode: "insensitive" } } : {}),
     ...(street ? { addressLine: { contains: street, mode: "insensitive" } } : {}),
     ...(propertyType ? { propertyType: propertyType as Prisma.EnumPropertyTypeFilter["equals"] } : {}),
@@ -77,7 +83,7 @@ export default async function AgentPropertiesPage({
       : {}),
   };
 
-  const [total, properties] = await Promise.all([
+  const [total, properties, agents] = await Promise.all([
     prisma.property.count({ where }),
     prisma.property.findMany({
       where,
@@ -86,6 +92,13 @@ export default async function AgentPropertiesPage({
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     }),
+    user.role === "MANAGER"
+      ? prisma.user.findMany({
+          where: { role: { in: ["AGENT", "MANAGER"] } },
+          select: { id: true, name: true },
+          orderBy: { name: "asc" },
+        })
+      : Promise.resolve([]),
   ]);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -157,6 +170,28 @@ export default async function AgentPropertiesPage({
                 </SelectContent>
               </Select>
             </div>
+            {user.role === "MANAGER" && (
+              <div className="space-y-2">
+                <Label htmlFor="agentId">מתווך</Label>
+                <Select
+                  name="agentId"
+                  defaultValue={agentId ?? "all"}
+                  items={[{ value: "all", label: "כל המתווכים" }, ...agents.map((a) => ({ value: a.id, label: a.name }))]}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">כל המתווכים</SelectItem>
+                    {agents.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-2">
               <Button type="submit" className="flex-1 sm:flex-initial">
                 <Search className="h-4 w-4" /> סינון

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
-import { getDistinctCities, getPublicProperties } from "@/lib/properties";
+import { getAgentsWithPublicListings, getDistinctCities, getPublicProperties } from "@/lib/properties";
 import { PropertyCard } from "@/components/property/property-card";
 import { FavoriteButton } from "@/components/property/favorite-button";
 import { Input } from "@/components/ui/input";
@@ -17,14 +17,16 @@ import { PROPERTY_TYPE_LABELS } from "@/lib/format";
 export default async function ClientSearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; city?: string; propertyType?: string }>;
+  searchParams: Promise<{ q?: string; city?: string; propertyType?: string; agentId?: string }>;
 }) {
   const user = await requireUser(["CLIENT"]);
   const params = await searchParams;
+  const agentId = params.agentId && params.agentId !== "all" ? params.agentId : undefined;
 
-  const [properties, cities, favorites] = await Promise.all([
-    getPublicProperties(params),
+  const [properties, cities, agents, favorites] = await Promise.all([
+    getPublicProperties({ ...params, agentId }),
     getDistinctCities(),
+    getAgentsWithPublicListings(),
     prisma.favorite.findMany({ where: { clientId: user.id }, select: { propertyId: true } }),
   ]);
   const favoritedIds = new Set(favorites.map((f) => f.propertyId));
@@ -33,7 +35,7 @@ export default async function ClientSearchPage({
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">חיפוש נכסים</h1>
 
-      <form method="get" className="grid grid-cols-1 gap-3 rounded-lg border bg-card p-4 sm:grid-cols-4">
+      <form method="get" className="grid grid-cols-1 gap-3 rounded-lg border bg-card p-4 sm:grid-cols-2 lg:grid-cols-5">
         <Input name="q" placeholder="חיפוש לפי כותרת או כתובת" defaultValue={params.q} />
         <Select
           name="city"
@@ -68,6 +70,23 @@ export default async function ClientSearchPage({
             {Object.entries(PROPERTY_TYPE_LABELS).map(([value, label]) => (
               <SelectItem key={value} value={value}>
                 {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          name="agentId"
+          defaultValue={agentId || "all"}
+          items={[{ value: "all", label: "כל המתווכים" }, ...agents.map((a) => ({ value: a.id, label: a.name }))]}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="מתווך" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">כל המתווכים</SelectItem>
+            {agents.map((a) => (
+              <SelectItem key={a.id} value={a.id}>
+                {a.name}
               </SelectItem>
             ))}
           </SelectContent>

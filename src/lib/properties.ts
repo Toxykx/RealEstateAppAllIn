@@ -7,6 +7,7 @@ export type PublicPropertyFilters = {
   propertyType?: string;
   minPrice?: number;
   maxPrice?: number;
+  agentId?: string;
 };
 
 const publicListingStatuses = ["AVAILABLE", "IN_PROGRESS"] as const;
@@ -25,6 +26,7 @@ export async function getPublicProperties(filters: PublicPropertyFilters = {}) {
   }
   if (filters.city) where.city = { equals: filters.city, mode: "insensitive" };
   if (filters.propertyType) where.propertyType = filters.propertyType as PropertyType;
+  if (filters.agentId) where.agentId = filters.agentId;
   if (filters.minPrice || filters.maxPrice) {
     where.price = {
       ...(filters.minPrice ? { gte: filters.minPrice } : {}),
@@ -72,4 +74,14 @@ export async function getDistinctCities() {
     orderBy: { city: "asc" },
   });
   return rows.map((r) => r.city);
+}
+
+/** Only agents who actually have a publicly-listed property — not every agent in the system. */
+export async function getAgentsWithPublicListings() {
+  const rows = await prisma.user.findMany({
+    where: { role: { in: ["AGENT", "MANAGER"] }, agentProperties: { some: { listingStatus: { in: [...publicListingStatuses] } } } },
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
+  });
+  return rows;
 }
