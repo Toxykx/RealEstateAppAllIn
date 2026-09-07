@@ -74,9 +74,9 @@ export default async function KeysBoardPage({
               <TableHeader>
                 <TableRow>
                   <SortableTableHead label="כותרת" sortKey="title" currentSort={sort} currentDir={dir} searchParams={params} />
-                  <SortableTableHead label="עיר" sortKey="city" currentSort={sort} currentDir={dir} searchParams={params} />
-                  <TableHead>כתובת</TableHead>
-                  <TableHead>מתווך אחראי</TableHead>
+                  <SortableTableHead label="עיר" sortKey="city" currentSort={sort} currentDir={dir} searchParams={params} className="hidden sm:table-cell" />
+                  <TableHead className="hidden md:table-cell">כתובת</TableHead>
+                  <TableHead className="hidden md:table-cell">מתווך אחראי</TableHead>
                   <SortableTableHead label="סטטוס מפתח" sortKey="keyStatus" currentSort={sort} currentDir={dir} searchParams={params} />
                   <TableHead>פעולה</TableHead>
                 </TableRow>
@@ -89,9 +89,9 @@ export default async function KeysBoardPage({
                         {property.title}
                       </Link>
                     </TableCell>
-                    <TableCell>{property.city}</TableCell>
-                    <TableCell className="text-muted-foreground">{property.addressLine}</TableCell>
-                    <TableCell>{property.agent.name}</TableCell>
+                    <TableCell className="hidden sm:table-cell">{property.city}</TableCell>
+                    <TableCell className="hidden text-muted-foreground md:table-cell">{property.addressLine}</TableCell>
+                    <TableCell className="hidden md:table-cell">{property.agent.name}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">{KEY_STATUS_LABELS[property.keyStatus]}</Badge>
                     </TableCell>

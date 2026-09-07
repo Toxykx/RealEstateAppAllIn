@@ -68,7 +68,7 @@ export function DashboardShell({
         </div>
       </aside>
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-16 min-h-16 items-center justify-between border-b border-border bg-card px-4 pt-[env(safe-area-inset-top)] sm:hidden">
           <BrandLogo />
           <form action={signOutAction}>
