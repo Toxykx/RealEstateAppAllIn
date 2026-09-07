@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser, requirePropertyOwner } from "@/lib/authz";
 import { DEAL_STAGE_STEPS, LISTING_STATUS_LABELS } from "@/lib/format";
 import { logActivity } from "@/lib/activity-log";
+import { notifyUser, notifyManagers } from "@/lib/notify";
 import type { ActionResult } from "@/components/action-form";
 import type { DealStage } from "@prisma/client";
 
@@ -64,6 +65,14 @@ export async function createProperty(_prevState: { error?: string } | undefined,
     agentId: user.id,
   });
 
+  await notifyManagers({
+    excludeUserId: user.id,
+    type: "PROPERTY_CREATED",
+    message: `${user.name} הוסיף/ה נכס חדש: "${property.title}".`,
+    propertyId: property.id,
+    pushUrl: `/agent/properties/${property.id}`,
+  });
+
   revalidatePath("/agent/properties");
   redirect(`/agent/properties/${property.id}?created=1`);
 }
@@ -105,6 +114,14 @@ export async function updateProperty(propertyId: string, formData: FormData): Pr
       propertyId,
       agentId: user.id,
     });
+
+    await notifyManagers({
+      excludeUserId: user.id,
+      type: "PRICE_CHANGED",
+      message: `המחיר עודכן עבור "${parsed.data.title}" על ידי ${user.name}: ${parsed.data.price} ${parsed.data.currency}.`,
+      propertyId,
+      pushUrl: `/agent/properties/${propertyId}`,
+    });
   }
 
   revalidatePath(`/agent/properties/${propertyId}`);
@@ -125,13 +142,12 @@ export async function assignPropertyToClient(propertyId: string, formData: FormD
   const property = await prisma.property.findUnique({ where: { id: propertyId } });
 
   if (clientIdValue) {
-    await prisma.notification.create({
-      data: {
-        userId: clientIdValue,
-        propertyId,
-        type: "PROPERTY_ASSIGNED",
-        message: `הנכס ${property?.title} הוקצה לך.`,
-      },
+    await notifyUser({
+      userId: clientIdValue,
+      propertyId,
+      type: "PROPERTY_ASSIGNED",
+      message: `הנכס ${property?.title} הוקצה לך.`,
+      pushUrl: `/client/properties/${propertyId}`,
     });
 
     await logActivity({
@@ -193,6 +209,16 @@ export async function changeListingStatus(propertyId: string, formData: FormData
       propertyId,
       agentId: user.id,
     });
+
+    if (before?.ownerClientId) {
+      await notifyUser({
+        userId: before.ownerClientId,
+        type: "PROPERTY_PUBLISHED",
+        message: `הנכס ${before.title} פורסם בקטלוג!`,
+        propertyId,
+        pushUrl: `/client/properties/${propertyId}`,
+      });
+    }
   }
 
   revalidatePath(`/agent/properties/${propertyId}`);
@@ -226,13 +252,12 @@ export async function changeDealStage(propertyId: string, formData: FormData): P
   });
 
   if (property.ownerClientId) {
-    await prisma.notification.create({
-      data: {
-        userId: property.ownerClientId,
-        propertyId,
-        type: "STAGE_CHANGE",
-        message: `הנכס ${property.title} עודכן ל-"${stepLabel}".`,
-      },
+    await notifyUser({
+      userId: property.ownerClientId,
+      propertyId,
+      type: "STAGE_CHANGE",
+      message: `הנכס ${property.title} עודכן ל-"${stepLabel}".`,
+      pushUrl: `/client/properties/${propertyId}`,
     });
   }
 
@@ -284,13 +309,12 @@ export async function postPropertyUpdate(propertyId: string, formData: FormData)
   if (!parsed.data.isInternal) {
     const property = await prisma.property.findUnique({ where: { id: propertyId } });
     if (property?.ownerClientId) {
-      await prisma.notification.create({
-        data: {
-          userId: property.ownerClientId,
-          propertyId,
-          type: "NEW_UPDATE",
-          message: `עדכון חדש על הנכס ${property.title}.`,
-        },
+      await notifyUser({
+        userId: property.ownerClientId,
+        propertyId,
+        type: "NEW_UPDATE",
+        message: `עדכון חדש על הנכס ${property.title}.`,
+        pushUrl: `/client/properties/${propertyId}`,
       });
     }
   }
@@ -341,13 +365,12 @@ export async function scheduleVisit(propertyId: string, formData: FormData): Pro
   });
 
   if (property?.ownerClientId) {
-    await prisma.notification.create({
-      data: {
-        userId: property.ownerClientId,
-        propertyId,
-        type: "VISIT_SCHEDULED",
-        message: `נקבע ביקור עבור הנכס ${property.title}.`,
-      },
+    await notifyUser({
+      userId: property.ownerClientId,
+      propertyId,
+      type: "VISIT_SCHEDULED",
+      message: `נקבע ביקור עבור הנכס ${property.title}.`,
+      pushUrl: `/client/properties/${propertyId}`,
     });
   }
 

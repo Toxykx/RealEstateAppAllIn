@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { BrandLogo } from "@/components/brand-logo";
 import { signOutAction } from "@/lib/actions/auth";
 import { PageTransition } from "@/components/motion/page-transition";
+import { PushPrompt } from "@/components/notifications/push-prompt";
 
 const navItems = [
   { href: "/client", label: "הנכסים שלי", shortLabel: "נכסים", icon: Home },
@@ -88,6 +89,8 @@ export function ClientShell({
           );
         })}
       </nav>
+
+      <PushPrompt />
     </div>
   );
 }

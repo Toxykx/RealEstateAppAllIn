@@ -13,6 +13,11 @@ export const authConfig = {
   },
   session: {
     strategy: "jwt",
+    // Long-lived, sliding session so the installed PWA stays logged in
+    // instead of bouncing back to /login every time it's reopened — the
+    // cookie's expiry refreshes on every use (default updateAge is 24h), so
+    // an actively-used install effectively never expires.
+    maxAge: 90 * 24 * 60 * 60, // 90 days
   },
   callbacks: {
     authorized({ auth, request }) {

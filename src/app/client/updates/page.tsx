@@ -16,6 +16,7 @@ const TYPE_LABELS: Record<string, string> = {
   NEW_DOCUMENT: "מסמך חדש",
   VISIT_SCHEDULED: "ביקור נקבע",
   PROPERTY_ASSIGNED: "נכס הוקצה",
+  PROPERTY_PUBLISHED: "נכס פורסם",
 };
 
 export default async function UpdatesPage() {

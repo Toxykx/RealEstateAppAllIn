@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { KeyRound } from "lucide-react";
+import { KeyRound, RotateCcwKey } from "lucide-react";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/authz";
-import { takeKey, returnKey } from "@/lib/actions/keys";
+import { takeKey, returnKey, setKeyStatus } from "@/lib/actions/keys";
 import { ActionForm } from "@/components/action-form";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -96,25 +96,49 @@ export default async function KeysBoardPage({
                       <Badge variant="secondary">{KEY_STATUS_LABELS[property.keyStatus]}</Badge>
                     </TableCell>
                     <TableCell>
-                      {property.keyStatus === "IN_OFFICE" && (
-                        <ActionForm action={takeKey.bind(null, property.id)}>
-                          <SubmitButton size="sm" pendingLabel="לוקח...">
-                            קח מפתח
-                          </SubmitButton>
-                        </ActionForm>
-                      )}
-                      {property.keyStatus === "WITH_AGENT" && property.keyHolderId === user.id && (
-                        <ActionForm action={returnKey.bind(null, property.id)}>
-                          <SubmitButton size="sm" variant="outline" pendingLabel="מחזיר...">
-                            החזר מפתח
-                          </SubmitButton>
-                        </ActionForm>
-                      )}
-                      {property.keyStatus === "WITH_AGENT" && property.keyHolderId !== user.id && (
-                        <span className="text-sm text-muted-foreground">
-                          המפתח אצל {property.keyHolder?.name ?? "מתווך אחר"}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1">
+                        {property.keyStatus === "IN_OFFICE" && (
+                          <ActionForm action={takeKey.bind(null, property.id)}>
+                            <SubmitButton size="sm" pendingLabel="לוקח...">
+                              קח מפתח
+                            </SubmitButton>
+                          </ActionForm>
+                        )}
+                        {property.keyStatus === "WITH_AGENT" && property.keyHolderId === user.id && (
+                          <ActionForm action={returnKey.bind(null, property.id)}>
+                            <SubmitButton size="sm" variant="outline" pendingLabel="מחזיר...">
+                              החזר מפתח
+                            </SubmitButton>
+                          </ActionForm>
+                        )}
+                        {property.keyStatus === "WITH_AGENT" && property.keyHolderId !== user.id && (
+                          <span className="text-sm text-muted-foreground">
+                            המפתח אצל {property.keyHolder?.name ?? "מתווך אחר"}
+                          </span>
+                        )}
+
+                        {user.role === "MANAGER" && property.keyStatus !== "LOST" && (
+                          <ActionForm action={setKeyStatus.bind(null, property.id)}>
+                            <input type="hidden" name="keyStatus" value="LOST" />
+                            <SubmitButton
+                              size="icon-sm"
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive"
+                              aria-label="סימון מפתח כאבוד"
+                            >
+                              <KeyRound className="h-4 w-4 rotate-[135deg]" />
+                            </SubmitButton>
+                          </ActionForm>
+                        )}
+                        {user.role === "MANAGER" && property.keyStatus === "LOST" && (
+                          <ActionForm action={setKeyStatus.bind(null, property.id)}>
+                            <input type="hidden" name="keyStatus" value="IN_OFFICE" />
+                            <SubmitButton size="icon-sm" variant="ghost" aria-label="ביטול סימון אבוד">
+                              <RotateCcwKey className="h-4 w-4" />
+                            </SubmitButton>
+                          </ActionForm>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

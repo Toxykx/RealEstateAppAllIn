@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/brand-logo";
 import { signOutAction } from "@/lib/actions/auth";
 import { PageTransition } from "@/components/motion/page-transition";
+import { PushPrompt } from "@/components/notifications/push-prompt";
 
 export type DashboardNavItem = {
   href: string;
@@ -97,6 +98,8 @@ export function DashboardShell({
           <PageTransition>{children}</PageTransition>
         </main>
       </div>
+
+      <PushPrompt />
     </div>
   );
 }

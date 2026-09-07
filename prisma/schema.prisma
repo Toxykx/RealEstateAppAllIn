@@ -6,8 +6,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // Migrations need a direct/session connection — the transaction pooler
+  // DATABASE_URL uses at runtime doesn't support the advisory locks and
+  // prepared statements Prisma Migrate relies on.
+  directUrl = env("DIRECT_URL")
 }
 
 enum Role {
@@ -72,6 +76,11 @@ enum NotificationType {
   NEW_DOCUMENT
   VISIT_SCHEDULED
   PROPERTY_ASSIGNED
+  PROPERTY_PUBLISHED
+  PROPERTY_CREATED
+  KEY_CHECKED_OUT
+  KEY_RETURNED
+  PRICE_CHANGED
 }
 
 enum DealType {
@@ -134,6 +143,7 @@ model User {
   favorites          Favorite[]
   assignedInquiries  ContactMessage[]
   notifications      Notification[]
+  pushSubscriptions  PushSubscription[]
   keysHeld           Property[]         @relation("KeyHolder")
   activityLogsAsAgent  ActivityLog[]    @relation("AgentActivity")
   activityLogsAsClient ActivityLog[]    @relation("ClientActivity")
@@ -300,6 +310,21 @@ model Notification {
   createdAt  DateTime         @default(now())
 
   @@index([userId, isRead])
+}
+
+// A browser/device's Web Push subscription. One user can hold several (one
+// per installed device), so notifications reach every device they've
+// enabled it on.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model ActivityLog {

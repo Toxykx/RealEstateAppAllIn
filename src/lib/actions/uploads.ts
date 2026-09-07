@@ -11,6 +11,7 @@ import {
   DOCUMENT_BUCKET,
 } from "@/lib/storage";
 import { logActivity } from "@/lib/activity-log";
+import { notifyUser } from "@/lib/notify";
 import type { ActionResult } from "@/components/action-form";
 
 export async function uploadImageAction(propertyId: string, formData: FormData): Promise<ActionResult> {
@@ -82,13 +83,12 @@ export async function uploadDocumentAction(propertyId: string, formData: FormDat
   if (visibleToClient) {
     const property = await prisma.property.findUnique({ where: { id: propertyId } });
     if (property?.ownerClientId) {
-      await prisma.notification.create({
-        data: {
-          userId: property.ownerClientId,
-          propertyId,
-          type: "NEW_DOCUMENT",
-          message: `נוסף מסמך חדש לנכס ${property.title}.`,
-        },
+      await notifyUser({
+        userId: property.ownerClientId,
+        propertyId,
+        type: "NEW_DOCUMENT",
+        message: `נוסף מסמך חדש לנכס ${property.title}.`,
+        pushUrl: `/client/properties/${propertyId}`,
       });
     }
   }
