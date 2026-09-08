@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Building, Search, X } from "lucide-react";
+import { Plus, Building, Search, X, Upload } from "lucide-react";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireUser, agentScope } from "@/lib/authz";
@@ -106,9 +106,14 @@ export default async function AgentPropertiesPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">נכסים</h1>
-        <Link href="/agent/properties/new" className={buttonVariants()}>
-          <Plus className="h-4 w-4" /> הוספת נכס
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/agent/properties/import" className={buttonVariants({ variant: "outline" })}>
+            <Upload className="h-4 w-4" /> ייבוא מ-Excel
+          </Link>
+          <Link href="/agent/properties/new" className={buttonVariants()}>
+            <Plus className="h-4 w-4" /> הוספת נכס
+          </Link>
+        </div>
       </div>
 
       <Card>
