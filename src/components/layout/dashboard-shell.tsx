@@ -9,6 +9,7 @@ import { BrandLogo } from "@/components/brand-logo";
 import { signOutAction } from "@/lib/actions/auth";
 import { PageTransition } from "@/components/motion/page-transition";
 import { PushPrompt } from "@/components/notifications/push-prompt";
+import { QuickAppointmentButton } from "@/components/appointments/quick-appointment-button";
 
 export type DashboardNavItem = {
   href: string;
@@ -20,11 +21,13 @@ export function DashboardShell({
   navItems,
   userName,
   roleLabel,
+  properties,
   children,
 }: {
   navItems: DashboardNavItem[];
   userName: string;
   roleLabel: string;
+  properties: { id: string; title: string; city: string }[];
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -35,7 +38,10 @@ export function DashboardShell({
         <div className="flex h-20 items-center border-b border-border px-6">
           <BrandLogo />
         </div>
-        <nav className="flex-1 space-y-1 p-3 pt-6">
+        <div className="px-3 pt-3">
+          <QuickAppointmentButton properties={properties} className="w-full" />
+        </div>
+        <nav className="flex-1 space-y-1 p-3 pt-3">
           {navItems.map((item) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
@@ -69,13 +75,16 @@ export function DashboardShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 min-h-16 items-center justify-between border-b border-border bg-card px-4 pt-[env(safe-area-inset-top)] sm:hidden">
+        <header className="flex h-16 min-h-16 items-center justify-between gap-2 border-b border-border bg-card px-4 pt-[env(safe-area-inset-top)] sm:hidden">
           <BrandLogo />
-          <form action={signOutAction}>
-            <Button type="submit" variant="ghost" size="icon-sm" className="size-11 sm:size-7" aria-label="התנתקות">
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </form>
+          <div className="flex items-center gap-1">
+            <QuickAppointmentButton properties={properties} compact />
+            <form action={signOutAction}>
+              <Button type="submit" variant="ghost" size="icon-sm" className="size-11 sm:size-7" aria-label="התנתקות">
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </form>
+          </div>
         </header>
         <nav className="flex gap-1 overflow-x-auto border-b border-border bg-card px-2 py-2 [overscroll-behavior-x:contain] sm:hidden">
           {navItems.map((item) => {

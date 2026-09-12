@@ -15,10 +15,12 @@ export function ActionForm({
   action,
   children,
   className,
+  onSuccess,
 }: {
   action: (formData: FormData) => Promise<ActionResult>;
   children: React.ReactNode;
   className?: string;
+  onSuccess?: () => void;
 }) {
   const [state, formAction] = useActionState<ActionData | null, FormData>(async (_prev, formData) => {
     return (await action(formData)) ?? null;
@@ -32,11 +34,12 @@ export function ActionForm({
     lastHandled.current = state;
     if (state.success) {
       toast.success(state.message);
+      onSuccess?.();
     } else {
       toast.error(state.message);
       formRef.current?.querySelector<HTMLElement>("input, textarea, select")?.focus();
     }
-  }, [state]);
+  }, [state, onSuccess]);
 
   return (
     <form ref={formRef} action={formAction} className={className}>

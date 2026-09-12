@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser, requirePropertyOwner } from "@/lib/authz";
 import {
@@ -80,24 +81,26 @@ export async function uploadDocumentAction(propertyId: string, formData: FormDat
     },
   });
 
-  if (visibleToClient) {
-    const property = await prisma.property.findUnique({ where: { id: propertyId } });
-    if (property?.ownerClientId) {
-      await notifyUser({
-        userId: property.ownerClientId,
-        propertyId,
-        type: "NEW_DOCUMENT",
-        message: `נוסף מסמך חדש לנכס ${property.title}.`,
-        pushUrl: `/client/properties/${propertyId}`,
-      });
+  after(async () => {
+    if (visibleToClient) {
+      const property = await prisma.property.findUnique({ where: { id: propertyId } });
+      if (property?.ownerClientId) {
+        await notifyUser({
+          userId: property.ownerClientId,
+          propertyId,
+          type: "NEW_DOCUMENT",
+          message: `נוסף מסמך חדש לנכס ${property.title}.`,
+          pushUrl: `/client/properties/${propertyId}`,
+        });
+      }
     }
-  }
 
-  await logActivity({
-    activityType: "DOCUMENT_UPLOADED",
-    description: `${user.name} העלה/תה מסמך: "${file.name}".`,
-    propertyId,
-    agentId: user.id,
+    await logActivity({
+      activityType: "DOCUMENT_UPLOADED",
+      description: `${user.name} העלה/תה מסמך: "${file.name}".`,
+      propertyId,
+      agentId: user.id,
+    });
   });
 
   revalidatePath(`/agent/properties/${propertyId}`);
